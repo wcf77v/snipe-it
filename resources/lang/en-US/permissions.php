@@ -234,6 +234,38 @@ return [
         'name' => 'Check In Components',
         'note' => 'Check components back into inventory that are currently checked out.',
     ],
+    'sims' => [
+        'name' => 'SIM Cards',
+        'note' => 'Grants access to the SIM Cards section of the application.',
+    ],
+    'simsview' => [
+        'name' => 'View SIM Cards',
+    ],
+    'simscreate' => [
+        'name' => 'Create New SIM Cards',
+    ],
+    'simsedit' => [
+        'name' => 'Edit SIM Cards',
+    ],
+    'simsdelete' => [
+        'name' => 'Delete SIM Cards',
+    ],
+    'simscheckout' => [
+        'name' => 'Check Out SIM Cards',
+        'note' => 'Assign SIM cards to users, assets or locations.',
+    ],
+    'simscheckin' => [
+        'name' => 'Check In SIM Cards',
+        'note' => 'Check SIM cards back into inventory.',
+    ],
+    'simssecrets' => [
+        'name' => 'View SIM Secrets',
+        'note' => 'Allows the user to view PIN/PUK codes, eSIM activation codes and encrypted SIM custom fields.',
+    ],
+    'simsfiles' => [
+        'name' => 'Manage SIM Card Files',
+        'note' => 'Allows the user to upload, download, and delete files associated with SIM cards.',
+    ],
     'kits' => [
         'name' => 'Predefined Kits',
         'note' => 'Grants access to the Predefined Kits section of the application.',

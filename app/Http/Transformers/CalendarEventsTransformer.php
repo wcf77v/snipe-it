@@ -41,6 +41,8 @@ class CalendarEventsTransformer
         'asset.warranty_expiration' => 'general.calendar_event_asset_warranty_expiration',
         'license.expiration' => 'general.calendar_event_license_expiration',
         'license.termination' => 'general.calendar_event_license_termination',
+        'sim.expiration' => 'admin/sims/general.calendar_event_expiration',
+        'sim.expected_checkin' => 'admin/sims/general.calendar_event_expected_checkin',
         'user.end_date' => 'general.calendar_event_user_end_date',
         'request.reservation' => 'general.calendar_event_request_reservation',
     ];

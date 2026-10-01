@@ -210,6 +210,41 @@ return [
 
     ],
 
+    'Sims' => [
+        [
+            'permission' => 'sims.view',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.create',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.edit',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.delete',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.checkout',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.checkin',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.secrets',
+            'display' => true,
+        ],
+        [
+            'permission' => 'sims.files',
+            'display' => true,
+        ],
+    ],
+
     'Kits' => [
         [
             'permission' => 'kits.view',

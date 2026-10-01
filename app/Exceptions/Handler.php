@@ -266,6 +266,10 @@ class Handler extends ExceptionHandler
         'current_password',
         'password',
         'password_confirmation',
+        // SIM card secrets (see App\Models\Sim::SECRET_FIELDS)
+        'pin',
+        'puk',
+        'activation_code',
     ];
 
     /**

@@ -856,6 +856,14 @@ class Asset extends Depreciable
     }
 
     /**
+     * SIM cards installed in (checked out to) this asset.
+     */
+    public function assignedSims()
+    {
+        return $this->morphMany(Sim::class, 'assigned', 'assigned_type', 'assigned_to');
+    }
+
+    /**
      * Establishes the accessory -> asset assignment relationship
      *
      * @author A. Gianotto <snipe@snipe.net>

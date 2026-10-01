@@ -241,6 +241,14 @@
                                                 </a>
                                             </li>
                                         @endcan
+                                        @can('create', \App\Models\Sim::class)
+                                            <li {!! (request()->is('sims/create') ? 'class="active"' : '') !!}>
+                                                <a href="{{ route('sims.create') }}" tabindex="-1">
+                                                    <x-icon type="sims" class="fa-fw" />
+                                                    {{ trans('admin/sims/general.sim') }}
+                                                </a>
+                                            </li>
+                                        @endcan
                                         @can('create', \App\Models\User::class)
                                             <li {!! (request()->is('users/create') ? 'class="active"' : '') !!}>
                                                 <a href="{{ route('users.create') }}" tabindex="-1">
@@ -596,6 +604,66 @@
                                     <x-icon type="components" class="fa-fw" />
                                     <span>{{ trans('general.components') }}</span>
                                 </a>
+                            </li>
+                        @endcan
+                        @can('view', \App\Models\Sim::class)
+                            <li id="sims-sidenav-option" class="treeview{{ (request()->is('sims*') || request()->is('simplans*')) ? ' active' : '' }}">
+                                <a href="#">
+                                    <x-icon type="sims" class="fa-fw" />
+                                    <span>{{ trans('admin/sims/general.sims') }}</span>
+                                    <x-icon type="angle-left" class="pull-right fa-fw"/>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li{!! (((request()->is('sims') && ! request()->filled('status_type')) || request()->is('sims/[0-9]*')) ? ' class="active" aria-current="page"' : '') !!}>
+                                        <a href="{{ route('sims.index') }}">
+                                            <x-icon type="circle" class="text-grey fa-fw"/>
+                                            {{ trans('general.list_all') }}
+                                        </a>
+                                    </li>
+                                    {{-- Same status shortcuts as the Assets menu. --}}
+                                    <li{!! (request()->is('sims') && request()->input('status_type') === 'Deployed' ? ' class="active" aria-current="page"' : '') !!}>
+                                        <a href="{{ route('sims.index', ['status_type' => 'Deployed']) }}">
+                                            <x-icon type="circle" class="text-blue fa-fw"/>
+                                            {{ trans('admin/sims/general.menu_deployed') }}
+                                        </a>
+                                    </li>
+                                    <li{!! (request()->is('sims') && request()->input('status_type') === 'RTD' ? ' class="active" aria-current="page"' : '') !!}>
+                                        <a href="{{ route('sims.index', ['status_type' => 'RTD']) }}">
+                                            <x-icon type="circle" class="text-green fa-fw"/>
+                                            {{ trans('admin/sims/general.menu_in_stock') }}
+                                        </a>
+                                    </li>
+                                    <li{!! (request()->is('simplans*') ? ' class="active" aria-current="page"' : '') !!}>
+                                        <a href="{{ route('simplans.index') }}">
+                                            <x-icon type="circle" class="text-grey fa-fw"/>
+                                            {{ trans('admin/sims/general.plans') }}
+                                        </a>
+                                    </li>
+                                    @can('create', \App\Models\Sim::class)
+                                        <li{!! (request()->is('sims/import*') ? ' class="active" aria-current="page"' : '') !!}>
+                                            <a href="{{ route('sims.import.create') }}">
+                                                <x-icon type="circle" class="text-grey fa-fw"/>
+                                                {{ trans('admin/sims/import.title') }}
+                                            </a>
+                                        </li>
+                                    @endcan
+                                    @can('view', \App\Models\User::class)
+                                        <li{!! (request()->is('sims/matches') ? ' class="active" aria-current="page"' : '') !!}>
+                                            <a href="{{ route('sims.matches.index') }}">
+                                                <x-icon type="circle" class="text-grey fa-fw"/>
+                                                {{ trans('admin/sims/general.matches') }}
+                                            </a>
+                                        </li>
+                                    @endcan
+                                    @can('manageSettings', \App\Models\Sim::class)
+                                        <li{!! (request()->is('sims/settings') ? ' class="active" aria-current="page"' : '') !!}>
+                                            <a href="{{ route('sims.settings.edit') }}">
+                                                <x-icon type="circle" class="text-grey fa-fw"/>
+                                                {{ trans('admin/sims/general.settings') }}
+                                            </a>
+                                        </li>
+                                    @endcan
+                                </ul>
                             </li>
                         @endcan
                         @can('view', \App\Models\PredefinedKit::class)

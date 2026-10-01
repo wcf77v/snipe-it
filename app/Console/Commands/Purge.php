@@ -17,6 +17,7 @@ use App\Models\License;
 use App\Models\Location;
 use App\Models\Maintenance;
 use App\Models\Manufacturer;
+use App\Models\Sim;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -384,6 +385,7 @@ class Purge extends Command
             License::class => 'private_uploads/licenses',
             Location::class => 'private_uploads/locations',
             Maintenance::class => 'private_uploads/maintenances',
+            Sim::class => 'private_uploads/sims',
             Supplier::class => 'private_uploads/suppliers',
             User::class => 'private_uploads/users',
         ];

@@ -1897,6 +1897,7 @@ class Helper
                 'Components' => route('components.index'),
                 'Consumables' => route('consumables.index'),
                 'Maintenances' => route('maintenances.index'),
+                'Sims' => route('sims.index'),
                 default => route('home'),
             };
 
@@ -1923,6 +1924,7 @@ class Helper
                 'Accessories' => redirect()->route('accessories.show', $id ?? $item_id),
                 'Components' => redirect()->route('components.show', $id ?? $item_id),
                 'Consumables' => redirect()->route('consumables.show', $id ?? $item_id),
+                'Sims' => redirect()->route('sims.show', $id ?? $item_id),
                 default => redirect()->route('home'),
             };
         }

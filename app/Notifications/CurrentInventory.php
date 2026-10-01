@@ -48,6 +48,7 @@ class CurrentInventory extends Notification implements ShouldQueue
                 'accessories' => $this->user->accessories,
                 'licenses' => $this->user->licenses,
                 'consumables' => $this->user->consumables,
+                'sims' => $this->user->assignedSims,
             ])
             ->subject(trans('mail.inventory_report'))
             ->withSymfonyMessage(function (Email $message) {

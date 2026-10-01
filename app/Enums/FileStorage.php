@@ -44,6 +44,7 @@ enum FileStorage: string
     case Manufacturers = 'manufacturers';
     case Models = 'models';
     case Signatures = 'signatures';
+    case Sims = 'sims';
     case Suppliers = 'suppliers';
     case Users = 'users';
 
@@ -226,6 +227,7 @@ enum FileStorage: string
             self::Maintenances => \App\Models\Maintenance::class,
             self::Manufacturers => \App\Models\Manufacturer::class,
             self::Models => \App\Models\AssetModel::class,
+            self::Sims => \App\Models\Sim::class,
             self::Suppliers => \App\Models\Supplier::class,
             self::Audits, self::Backups, self::Barcodes, self::EulaPdfs, self::Imports, self::Signatures => null,
         };

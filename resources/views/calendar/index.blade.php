@@ -93,6 +93,16 @@
                             text: '{{ trans('general.calendar_event_license_termination') }}'
                         },
                     @endcan
+                    @can('view', \App\Models\Sim::class)
+                        {
+                            name: 'sim.expiration',
+                            text: '{{ trans('admin/sims/general.calendar_event_expiration') }}'
+                        },
+                        {
+                            name: 'sim.expected_checkin',
+                            text: '{{ trans('admin/sims/general.calendar_event_expected_checkin') }}'
+                        },
+                    @endcan
                     @can('view', \App\Models\User::class)
                         {
                             name: 'user.start_date',

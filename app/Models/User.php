@@ -726,6 +726,7 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
             && (($this->accessories_count ?? $this->accessories()->count()) === 0)
             && (($this->licenses_count ?? $this->licenses()->count()) === 0)
             && (($this->consumables_count ?? $this->consumables()->count()) === 0)
+            && ($this->assignedSims()->withoutGlobalScope(CompanyableScope::class)->count() === 0)
             && (($this->manages_users_count ?? $this->managesUsers()->count()) === 0)
             && (($this->manages_locations_count ?? $this->managedLocations()->count()) === 0);
     }
@@ -1294,6 +1295,14 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
         return $this->belongsToMany(Accessory::class, 'accessories_checkout', 'assigned_to', 'accessory_id')
             ->where('assigned_type', '=', 'App\Models\User')
             ->withPivot('id', 'created_at', 'note')->withTrashed()->orderBy('accessory_id');
+    }
+
+    /**
+     * SIM cards checked out to this user.
+     */
+    public function assignedSims()
+    {
+        return $this->morphMany(Sim::class, 'assigned', 'assigned_type', 'assigned_to');
     }
 
     /**

@@ -32,6 +32,7 @@
                     <x-tabs.license-tab count="{{ $user->licenses()->count() }}"/>
                     <x-tabs.accessory-tab count="{{ $user->accessories()->count() }}"/>
                     <x-tabs.consumable-tab count="{{ $user->consumables()->count() }}"/>
+                    <x-tabs.sim-tab count="{{ $user->assignedSims()->count() }}"/>
                     <x-tabs.maintenance-tab count="{{ $user->assignedMaintenances()->count() }}"/>
                     <x-tabs.files-tab :item="$user" count="{{ $user->uploads()->count() }}"/>
                     <x-tabs.eula-tab count="{{ $user->eulas()->count() }}"/>
@@ -389,6 +390,13 @@
                         @endcan
 
                     </x-tabs.pane>
+
+                    @can('view', \App\Models\Sim::class)
+                    <x-tabs.pane name="sims">
+                        @include('sims/partials/user-phone-matches', ['user' => $user])
+                        <x-table.sims :route="route('api.sims.index', ['assigned_to' => $user->id, 'assigned_type' => 'user'])"/>
+                    </x-tabs.pane>
+                    @endcan
 
                     {{-- Maintenances tab: every maintenance whose underlying
                          asset was checked out to this user. Shows open and

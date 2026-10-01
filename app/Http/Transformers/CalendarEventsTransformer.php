@@ -42,6 +42,8 @@ class CalendarEventsTransformer
         'license.expiration' => 'general.calendar_event_license_expiration',
         'license.termination' => 'general.calendar_event_license_termination',
         'user.start_date' => 'general.calendar_event_user_start_date',
+        'sim.expiration' => 'admin/sims/general.calendar_event_expiration',
+        'sim.expected_checkin' => 'admin/sims/general.calendar_event_expected_checkin',
         'user.end_date' => 'general.calendar_event_user_end_date',
         'request.reservation' => 'general.calendar_event_request_reservation',
     ];

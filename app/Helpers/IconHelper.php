@@ -99,6 +99,9 @@ class IconHelper
             case 'components':
             case 'component':
                 return 'far fa-hdd';
+            case 'sims':
+            case 'sim':
+                return 'fas fa-sim-card';
             case 'consumables':
             case 'consumable':
                 return 'fas fa-tint';

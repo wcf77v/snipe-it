@@ -111,6 +111,19 @@
             </a>
           </li>
 
+          @if ($user->assignedSims->count() > 0)
+          <li>
+            <a href="#sims" data-toggle="tab">
+            <span class="hidden-lg hidden-md" aria-hidden="true">
+                <x-icon type="sims" class="fa-2x" />
+              </span>
+              <span class="hidden-xs hidden-sm">{{ trans('admin/sims/general.sims') }}
+                <span class="badge badge-secondary">{{ number_format($user->assignedSims->count()) }}</span>
+            </span>
+            </a>
+          </li>
+          @endif
+
           <li>
             <a href="#eulas" data-toggle="tab">
             <span class="hidden-lg hidden-md" aria-hidden="true">
@@ -466,6 +479,51 @@
                 </tbody>
               </table>
           </div><!-- /accessories-tab -->
+
+          {{-- SIM cards checked out to this user. Secrets are never shown here. --}}
+          @if ($user->assignedSims->count() > 0)
+          <div class="tab-pane" id="sims">
+              <table
+                      data-toolbar="#userSimToolbar"
+                      data-cookie-id-table="userSimTable"
+                      data-id-table="userSimTable"
+                      id="userSimTable"
+                      data-side-pagination="client"
+                      data-show-refresh="false"
+                      data-sort-order="asc"
+                      class="table table-striped snipe-table table-hover"
+                      data-export-options='{
+                    "fileName": "export-sims-{{ str_slug($user->username) }}-{{ date('Y-m-d') }}",
+                    "ignoreColumn": ["actions","image","change","checkbox","checkincheckout","delete","download","icon"]
+                    }'>
+
+                <caption id="userSimToolbar" class="tableCaption">
+                  {{ trans('admin/sims/general.sims') }}
+                </caption>
+
+                <thead>
+                <tr>
+                  <th scope="col" class="col-md-3">{{ trans('admin/sims/table.msisdn') }}</th>
+                  <th scope="col" class="col-md-3">{{ trans('admin/sims/table.iccid') }}</th>
+                  <th scope="col" class="col-md-2">{{ trans('admin/sims/table.operator') }}</th>
+                  <th scope="col" class="col-md-2">{{ trans('admin/sims/table.plan') }}</th>
+                  <th scope="col" class="col-md-2">{{ trans('admin/hardware/table.checkout_date') }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach ($user->assignedSims as $userSim)
+                  <tr>
+                    <td>{{ $userSim->formatted_msisdn ?: $userSim->display_name }}</td>
+                    <td>{{ $userSim->iccid }}</td>
+                    <td>{{ $userSim->supplier?->name }}</td>
+                    <td>{{ $userSim->simPlan?->name }}</td>
+                    <td>{{ Helper::getFormattedDateObject($userSim->last_checkout, 'datetime', false) }}</td>
+                  </tr>
+                @endforeach
+                </tbody>
+              </table>
+          </div>
+          @endif
 
           <div class="tab-pane" id="consumables">
               <table

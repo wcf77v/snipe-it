@@ -14,6 +14,8 @@ use App\Mail\CheckoutAssetMail;
 use App\Mail\CheckoutComponentMail;
 use App\Mail\CheckoutConsumableMail;
 use App\Mail\CheckoutLicenseMail;
+use App\Mail\CheckinSimMail;
+use App\Mail\CheckoutSimMail;
 use App\Models\Accessory;
 use App\Models\Asset;
 use App\Models\Category;
@@ -24,6 +26,7 @@ use App\Models\Consumable;
 use App\Models\LicenseSeat;
 use App\Models\Location;
 use App\Models\Setting;
+use App\Models\Sim;
 use App\Models\User;
 use App\Notifications\CheckinAccessoryNotification;
 use App\Notifications\CheckinAssetNotification;
@@ -34,6 +37,8 @@ use App\Notifications\CheckoutAssetNotification;
 use App\Notifications\CheckoutComponentNotification;
 use App\Notifications\CheckoutConsumableNotification;
 use App\Notifications\CheckoutLicenseSeatNotification;
+use App\Notifications\CheckinSimNotification;
+use App\Notifications\CheckoutSimNotification;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Database\Eloquent\Collection;
@@ -406,6 +411,9 @@ class CheckoutableListener
             case Component::class:
                 $notificationClass = CheckinComponentNotification::class;
                 break;
+            case Sim::class:
+                $notificationClass = CheckinSimNotification::class;
+                break;
         }
 
         Log::debug('Notification class: '.$notificationClass);
@@ -441,6 +449,9 @@ class CheckoutableListener
             case Component::class:
                 $notificationClass = CheckoutComponentNotification::class;
                 break;
+            case Sim::class:
+                $notificationClass = CheckoutSimNotification::class;
+                break;
         }
 
         return new $notificationClass($checkoutable, $event->checkedOutTo, $event->checkedOutBy, $acceptance, $event->note, $this->webhookSource($checkoutable));
@@ -463,6 +474,7 @@ class CheckoutableListener
             LicenseSeat::class => CheckoutLicenseMail::class,
             Consumable::class => CheckoutConsumableMail::class,
             Component::class => CheckoutComponentMail::class,
+            Sim::class => CheckoutSimMail::class,
         ];
         $mailable = $lookup[get_class($event->checkoutable)];
 
@@ -477,6 +489,7 @@ class CheckoutableListener
             Asset::class => CheckinAssetMail::class,
             LicenseSeat::class => CheckinLicenseMail::class,
             Component::class => CheckinComponentMail::class,
+            Sim::class => CheckinSimMail::class,
         ];
         $mailable = $lookup[get_class($event->checkoutable)];
 
@@ -650,6 +663,7 @@ class CheckoutableListener
             $checkoutable instanceof Consumable,
             $checkoutable instanceof Component => $checkoutable->category,
             $checkoutable instanceof LicenseSeat => $checkoutable->license->category,
+            // Items without a category (e.g. SIM cards).
             default => null,
         };
     }

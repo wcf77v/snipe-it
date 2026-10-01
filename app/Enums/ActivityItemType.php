@@ -15,6 +15,7 @@ use App\Models\License;
 use App\Models\Location;
 use App\Models\Maintenance;
 use App\Models\Manufacturer;
+use App\Models\Sim;
 use App\Models\Supplier;
 use App\Models\User;
 
@@ -51,6 +52,7 @@ enum ActivityItemType: string
     case Location = 'location';
     case Maintenance = 'maintenance';
     case Manufacturer = 'manufacturer';
+    case Sim = 'sim';
     case Supplier = 'supplier';
     case User = 'user';
 
@@ -75,6 +77,7 @@ enum ActivityItemType: string
             self::Location => Location::class,
             self::Maintenance => Maintenance::class,
             self::Manufacturer => Manufacturer::class,
+            self::Sim => Sim::class,
             self::Supplier => Supplier::class,
             self::User => User::class,
         };
@@ -88,6 +91,7 @@ enum ActivityItemType: string
         return match ($this) {
             self::AssetModel => trans('general.asset_model'),
             self::Maintenance => trans('admin/maintenances/general.maintenance'),
+            self::Sim => trans('admin/sims/general.sim'),
             default => trans('general.'.$this->value),
         };
     }
@@ -100,6 +104,7 @@ enum ActivityItemType: string
         return IconHelper::icon(match ($this) {
             self::AssetModel => 'model',
             self::Maintenance => 'maintenances',
+            self::Sim => 'sim',
             default => $this->value,
         });
     }

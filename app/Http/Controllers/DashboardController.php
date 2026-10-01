@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Component;
 use App\Models\Consumable;
 use App\Models\License;
+use App\Models\Sim;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
@@ -59,6 +60,7 @@ class DashboardController extends Controller
             $counts['license'] = License::assetcount();
             $counts['consumable'] = (int) Consumable::notArchived()->sum('qty');
             $counts['component'] = (int) Component::notArchived()->sum('qty');
+            $counts['sim'] = Sim::count();
             $counts['user'] = Company::scopeCompanyables(auth()->user())->count();
             $counts['grand_total'] = $counts['asset'] + $counts['accessory'] + $counts['license'] + $counts['consumable'];
         }

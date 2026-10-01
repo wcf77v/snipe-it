@@ -34,6 +34,7 @@ use App\Models\Department;
 use App\Models\License;
 use App\Models\Location;
 use App\Models\Maintenance;
+use App\Models\Sim;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Traits\DisablesDebugbar;
@@ -60,6 +61,7 @@ abstract class Controller extends BaseController
         'licenses' => License::class,
         'locations' => Location::class,
         'models' => AssetModel::class,
+        'sims' => Sim::class,
         'suppliers' => Supplier::class,
         'users' => User::class,
     ];
@@ -77,6 +79,7 @@ abstract class Controller extends BaseController
         'licenses' => 'license',
         'locations' => 'location',
         'models' => 'model',
+        'sims' => 'sim',
         'suppliers' => 'supplier',
         'users' => 'user',
     ];
@@ -97,6 +100,7 @@ abstract class Controller extends BaseController
         Component::class => 'components',
         Consumable::class => 'consumables',
         License::class => 'licenses',
+        Sim::class => 'sims',
     ];
 
     // Activity-report class allowlist lives on App\Enums\ActivityItemType.
@@ -138,6 +142,7 @@ abstract class Controller extends BaseController
             'licenses' => FileStorage::Licenses->privateStorageKey(),
             'locations' => FileStorage::Locations->privateStorageKey(),
             'models' => FileStorage::Models->privateStorageKey(),
+            'sims' => FileStorage::Sims->privateStorageKey(),
             'suppliers' => FileStorage::Suppliers->privateStorageKey(),
             'users' => FileStorage::Users->privateStorageKey(),
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\CompanyableScope;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,6 +34,7 @@ class DeleteUserRequest extends FormRequest
                 'assigned_assets' => $user_to_delete->assets()->count(),
                 'assigned_licenses' => $user_to_delete->licenses()->count(),
                 'assigned_accessories' => $user_to_delete->accessories()->count(),
+                'assigned_sims' => $user_to_delete->assignedSims()->withoutGlobalScope(CompanyableScope::class)->count(),
                 'deleted_at' => $user_to_delete->deleted_at,
             ]);
         }
@@ -52,6 +54,7 @@ class DeleteUserRequest extends FormRequest
             'assigned_assets' => Rule::in([0]),
             'assigned_licenses' => Rule::in([0]),
             'assigned_accessories' => Rule::in([0]),
+            'assigned_sims' => Rule::in([0]),
             'deleted_at' => Rule::in([null]),
         ];
     }
@@ -86,6 +89,9 @@ class DeleteUserRequest extends FormRequest
 
                 // assigned accessories is not 0
                 'assigned_accessories.in' => trans_choice('admin/users/message.error.delete_has_accessories_var', $user_to_delete->accessories()->count(), ['count' => $user_to_delete->accessories()->count()]),
+
+                // assigned SIM cards is not 0
+                'assigned_sims.in' => trans('admin/sims/message.user_has_sims'),
 
                 'deleted_at.in' => trans('admin/users/message.user_deleted_warning'),
 

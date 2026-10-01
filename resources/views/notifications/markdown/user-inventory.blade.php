@@ -47,6 +47,20 @@
 </table>
 @endif
 
+@if (isset($sims) && $sims->count() > 0)
+## {{ $sims->count() }} {{ trans('admin/sims/general.sims') }}
+
+<table width="100%">
+    <tr><th align="left">{{ trans('admin/sims/table.msisdn') }}</th><th align="left">{{ trans('admin/sims/table.operator') }}</th></tr>
+@foreach($sims as $inventorySim)
+<tr>
+    <td>{{ $inventorySim->formatted_msisdn ?: $inventorySim->display_name }}</td>
+    <td>{{ $inventorySim->supplier?->name }}</td>
+</tr>
+@endforeach
+</table>
+@endif
+
 @if ($licenses->count() > 0)
 ## {{ $licenses->count() }} {{ trans('general.licenses') }}
 

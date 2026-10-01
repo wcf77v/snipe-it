@@ -97,6 +97,7 @@
 
                   <x-tabs.consumable-tab count="{{ $location->consumables()->count() }}"/>
                   <x-tabs.component-tab count="{{ $location->components()->count() }}"/>
+                  <x-tabs.sim-tab count="{{ $location->sims()->count() }}"/>
 
                   <x-tabs.nav-item
                           name="child_locations"
@@ -188,6 +189,12 @@
                   </x-tabs.pane>
                   @endcan
                   <!-- end components tab pane -->
+
+                  @can('view', \App\Models\Sim::class)
+                  <x-tabs.pane name="sims">
+                      <x-table.sims :route="route('api.sims.index', ['location_id' => $location->id])"/>
+                  </x-tabs.pane>
+                  @endcan
 
                   <!-- start child locations tab pane -->
                   <x-tabs.pane name="child_locations">

@@ -58,6 +58,7 @@
                     <x-tabs.component-tab count="{{ $asset->components()->sum('assigned_qty') }}"/>
                     <x-tabs.asset-tab count="{{ $asset->assignedAssets()->AssetsForShow()->count() }}"/>
                     <x-tabs.accessory-tab count="{{ $asset->assignedAccessories()->count() }}"/>
+                    <x-tabs.sim-tab count="{{ $asset->assignedSims()->count() }}"/>
                     <x-tabs.maintenance-tab count="{{ $asset->maintenances->count() }}"/>
 
                     <x-tabs.nav-item
@@ -379,6 +380,12 @@
                             export_filename="export-accessories-{{ str_slug($asset->name) }}-{{ date('Y-m-d') }}"
                         />
                     </x-tabs.pane>
+
+                    @can('view', \App\Models\Sim::class)
+                    <x-tabs.pane name="sims">
+                        <x-table.sims :route="route('api.sims.index', ['assigned_to' => $asset->id, 'assigned_type' => 'asset'])"/>
+                    </x-tabs.pane>
+                    @endcan
 
 
                     <!-- start maintenances tab pane -->

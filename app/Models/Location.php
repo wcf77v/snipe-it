@@ -142,6 +142,8 @@ class Location extends SnipeModel
             && (($this->children_count ?? $this->children()->count()) === 0)
             && (($this->components_count ?? $this->components()->count()) === 0)
             && (($this->consumables_count ?? $this->consumables()->count()) === 0)
+            && ($this->assignedSims()->withoutGlobalScope(CompanyableScope::class)->count() === 0)
+            && ($this->sims()->withoutGlobalScope(CompanyableScope::class)->count() === 0)
             && (($this->rtd_assets_count ?? $this->rtd_assets()->count()) === 0)
             && (($this->users_count ?? $this->users()->count()) === 0);
     }
@@ -341,6 +343,22 @@ class Location extends SnipeModel
     public function assignedAssets()
     {
         return $this->morphMany(Asset::class, 'assigned', 'assigned_type', 'assigned_to')->AssetsForShow()->withTrashed();
+    }
+
+    /**
+     * SIM cards checked out to this location.
+     */
+    public function assignedSims()
+    {
+        return $this->morphMany(Sim::class, 'assigned', 'assigned_type', 'assigned_to');
+    }
+
+    /**
+     * SIM cards stored at this location.
+     */
+    public function sims()
+    {
+        return $this->hasMany(Sim::class, 'location_id');
     }
 
     /**

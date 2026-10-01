@@ -308,6 +308,47 @@
     @endif
     @endcan
 
+    @can('view', \App\Models\Sim::class)
+    @if ($show_user->assignedSims->count() > 0)
+        <div id="sims-toolbar">
+            <h4>{{ $show_user->assignedSims->count() }} {{ trans('admin/sims/general.sims') }}</h4>
+        </div>
+
+        <table
+            class="snipe-table table table-striped inventory"
+            id="simsAssigned"
+            data-toolbar="#sims-toolbar"
+            data-pagination="false"
+            data-id-table="simsAssigned"
+            data-search="false"
+            data-side-pagination="client"
+            data-sortable="true"
+            data-show-columns="true"
+            data-cookie-id-table="simsAssigned">
+            <thead>
+            <tr>
+                <th scope="col" style="width: 20px;" data-sortable="false" data-switchable="false">#</th>
+                <th scope="col" data-sortable="true" data-switchable="false">{{ trans('admin/sims/table.msisdn') }}</th>
+                <th scope="col" data-sortable="true">{{ trans('admin/sims/table.iccid') }}</th>
+                <th scope="col" data-sortable="true">{{ trans('admin/sims/table.operator') }}</th>
+                <th scope="col" data-sortable="true">{{ trans('admin/sims/table.plan') }}</th>
+                <th scope="col" data-sortable="true">{{ trans('admin/hardware/table.checkout_date') }}</th>
+            </tr>
+            </thead>
+            @foreach ($show_user->assignedSims as $simIndex => $printSim)
+                <tr>
+                    <td>{{ $simIndex + 1 }}</td>
+                    <td>{{ $printSim->formatted_msisdn ?: $printSim->display_name }}</td>
+                    <td>{{ $printSim->iccid }}</td>
+                    <td>{{ $printSim->supplier?->name }}</td>
+                    <td>{{ $printSim->simPlan?->name }}</td>
+                    <td>{{ Helper::getFormattedDateObject($printSim->last_checkout, 'datetime', false) }}</td>
+                </tr>
+            @endforeach
+        </table>
+    @endif
+    @endcan
+
     @can('view', \App\Models\Consumable::class)
     @if ($show_user->consumables->count() > 0)
         <div id="consumables-toolbar">

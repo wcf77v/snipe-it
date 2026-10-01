@@ -20,6 +20,7 @@ class QrCodeController extends Controller
         'licenses' => 'licenses.show',
         'locations' => 'locations.show',
         'models' => 'models.show',
+        'sims' => 'sims.show',
         'users' => 'users.show',
     ];
 

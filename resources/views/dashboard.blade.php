@@ -26,7 +26,16 @@
 </div>
 @endif
 
-<div class="row">
+@can('view', \App\Models\Sim::class)
+    {{-- Seven tiles instead of six when SIM cards are shown: keep them on one row on large screens. --}}
+    <style nonce="{{ csrf_token() }}">
+        @media (min-width: 1200px) {
+            .dashboard-tiles > .col-lg-2 { width: 14.2857%; }
+        }
+    </style>
+@endcan
+
+<div class="row dashboard-tiles">
 
     <!-- panel -->
     <div class="col-lg-2 col-xs-6">
@@ -124,6 +133,27 @@
             </div>
         </a>
     </div><!-- ./col -->
+
+    @can('view', \App\Models\Sim::class)
+    <div class="col-lg-2 col-xs-6">
+        <!-- small SIM cards box -->
+        <a href="{{ route('sims.index') }}">
+            <div class="dashboard small-box bg-olive">
+                <div class="inner">
+                    <h3>{{ number_format($counts['sim'] ?? 0) }}</h3>
+                    <p>{{ trans('admin/sims/general.sims') }}</p>
+                </div>
+                <div class="icon" aria-hidden="true">
+                    <x-icon type="sims" />
+                </div>
+                <span class="small-box-footer">
+                    {{ trans('general.view_all') }}
+                    <x-icon type="arrow-circle-right" />
+                </span>
+            </div>
+        </a>
+    </div><!-- ./col -->
+    @endcan
 
     <div class="col-lg-2 col-xs-6">
         <!-- small users box -->

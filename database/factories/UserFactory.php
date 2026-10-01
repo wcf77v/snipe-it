@@ -445,6 +445,41 @@ class UserFactory extends Factory
         return $this->appendPermission(['components.checkout' => '1']);
     }
 
+    public function viewSims()
+    {
+        return $this->appendPermission(['sims.view' => '1']);
+    }
+
+    public function createSims()
+    {
+        return $this->appendPermission(['sims.create' => '1']);
+    }
+
+    public function editSims()
+    {
+        return $this->appendPermission(['sims.edit' => '1']);
+    }
+
+    public function deleteSims()
+    {
+        return $this->appendPermission(['sims.delete' => '1']);
+    }
+
+    public function checkoutSims()
+    {
+        return $this->appendPermission(['sims.checkout' => '1']);
+    }
+
+    public function checkinSims()
+    {
+        return $this->appendPermission(['sims.checkin' => '1']);
+    }
+
+    public function viewSimSecrets()
+    {
+        return $this->appendPermission(['sims.secrets' => '1']);
+    }
+
     public function viewCompanies()
     {
         return $this->appendPermission(['companies.view' => '1']);

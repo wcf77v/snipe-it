@@ -2508,6 +2508,10 @@
                 item_destination = 'consumables';
                 item_icon = 'fas fa-tint';
             }
+            else if (value.type === 'sim') {
+                item_destination = 'sims';
+                item_icon = 'fas fa-sim-card';
+            }
             else if (value.type === 'license') {
                 item_destination = 'licenses';
                 item_icon = 'far fa-save';
@@ -3204,6 +3208,8 @@
         'maintenanceTypes',
         'manufacturers',
         'models',
+        'simplans',
+        'sims',
         'statuslabels',
         'suppliers',
         'users',

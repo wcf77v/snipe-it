@@ -20,6 +20,8 @@ use App\Models\Maintenance;
 use App\Models\MaintenanceType;
 use App\Models\Manufacturer;
 use App\Models\PredefinedKit;
+use App\Models\Sim;
+use App\Models\SimPlan;
 use App\Models\Statuslabel;
 use App\Models\Supplier;
 use App\Models\User;
@@ -41,6 +43,8 @@ use App\Policies\MaintenancePolicy;
 use App\Policies\MaintenanceTypePolicy;
 use App\Policies\ManufacturerPolicy;
 use App\Policies\PredefinedKitPolicy;
+use App\Policies\SimPlanPolicy;
+use App\Policies\SimPolicy;
 use App\Policies\StatuslabelPolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\UserPolicy;
@@ -78,6 +82,8 @@ class AuthServiceProvider extends ServiceProvider
         Maintenance::class => MaintenancePolicy::class,
         MaintenanceType::class => MaintenanceTypePolicy::class,
         PredefinedKit::class => PredefinedKitPolicy::class,
+        Sim::class => SimPolicy::class,
+        SimPlan::class => SimPlanPolicy::class,
         Statuslabel::class => StatuslabelPolicy::class,
         Supplier::class => SupplierPolicy::class,
         User::class => UserPolicy::class,
@@ -289,6 +295,10 @@ class AuthServiceProvider extends ServiceProvider
                 || $user->can('create', Consumable::class)
                 || $user->can('update', Accessory::class)
                 || $user->can('create', Accessory::class)
+                || $user->can('update', Sim::class)
+                || $user->can('create', Sim::class)
+                || $user->can('checkout', Sim::class)
+                || $user->can('checkin', Sim::class)
                 || $user->can('update', User::class)
                 || $user->can('create', User::class)
                 || ($user->hasAccess('reports.view'));

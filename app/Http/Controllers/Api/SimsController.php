@@ -99,7 +99,19 @@ class SimsController extends Controller
 
         // Phone number filter accepts any notation and matches the stored E.164.
         if ($request->filled('msisdn') && is_string($request->input('msisdn'))) {
-            $sims->where('sims.msisdn', '=', PhoneNumberService::toE164($request->input('msisdn'), $request->input('phone_country')) ?? $request->input('msisdn'));
+            $raw = $request->input('msisdn');
+            $needles = PhoneNumberService::searchNeedles($raw, $request->input('phone_country'));
+            $e164 = PhoneNumberService::toE164($raw, $request->input('phone_country'));
+            $sims->where(function ($q) use ($needles, $e164, $raw) {
+                if ($e164) {
+                    $q->orWhere('sims.msisdn', '=', $e164);
+                }
+                foreach ($needles as $needle) {
+                    $q->orWhereRaw("REPLACE(sims.msisdn, '+', '') LIKE ?", ['%'.$needle.'%']);
+                }
+                // Fallback: literal paste (including a "+" that survived encoding).
+                $q->orWhere('sims.msisdn', 'LIKE', '%'.$raw.'%');
+            });
         }
 
         foreach (['location_id', 'department_id', 'supplier_id', 'status_id', 'sim_plan_id'] as $idFilter) {
@@ -407,10 +419,14 @@ class SimsController extends Controller
 
         if ($request->filled('search') && is_string($request->input('search'))) {
             $search = $request->input('search');
-            $sims->where(function ($query) use ($search) {
+            $needles = PhoneNumberService::searchNeedles($search);
+            $sims->where(function ($query) use ($search, $needles) {
                 $query->where('sims.name', 'LIKE', '%'.$search.'%')
                     ->orWhere('sims.iccid', 'LIKE', '%'.$search.'%')
                     ->orWhere('sims.msisdn', 'LIKE', '%'.$search.'%');
+                foreach ($needles as $needle) {
+                    $query->orWhereRaw("REPLACE(sims.msisdn, '+', '') LIKE ?", ['%'.$needle.'%']);
+                }
             });
         }
 

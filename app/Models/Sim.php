@@ -212,6 +212,31 @@ class Sim extends SnipeModel
     ];
 
     /**
+     * Match MSISDN regardless of formatting (+, spaces, dashes) and of the
+     * "+" being turned into a space in query strings.
+     *
+     * @param  list<string>  $terms
+     */
+    public function advancedTextSearch(Builder $query, array $terms): Builder
+    {
+        foreach ($terms as $term) {
+            $needles = PhoneNumberService::searchNeedles($term);
+            if ($needles === []) {
+                continue;
+            }
+
+            $query->orWhere(function (Builder $phoneQuery) use ($needles): void {
+                foreach ($needles as $needle) {
+                    // Stored value is E.164 ("+375…"); compare digit-only forms.
+                    $phoneQuery->orWhereRaw("REPLACE(sims.msisdn, '+', '') LIKE ?", ['%'.$needle.'%']);
+                }
+            });
+        }
+
+        return $query;
+    }
+
+    /**
      * Per-request cache of fieldsets keyed by plan id (0 = no plan / default).
      *
      * @var array<int, CustomFieldset|null>

@@ -141,4 +141,45 @@ class PhoneNumberService
 
         return $number ? self::util()->format($number, PhoneNumberFormat::INTERNATIONAL) : null;
     }
+
+    /**
+     * Digits only (no +, spaces, dashes). Used for format-tolerant search.
+     */
+    public static function digits(?string $raw): string
+    {
+        return preg_replace('/\D+/', '', (string) $raw) ?? '';
+    }
+
+    /**
+     * Search needles for matching a stored E.164 MSISDN against free-form input
+     * ("+375 29 242-67-85", "375292426785", "8 029 …", etc.).
+     *
+     * @return list<string> digit strings of length >= 5
+     */
+    public static function searchNeedles(?string $raw, ?string $country = null): array
+    {
+        $needles = [];
+        $digits = self::digits($raw);
+        if (strlen($digits) >= 5) {
+            $needles[] = $digits;
+        }
+
+        $e164 = self::toE164($raw, $country);
+        if ($e164) {
+            $e164Digits = self::digits($e164);
+            if (strlen($e164Digits) >= 5) {
+                $needles[] = $e164Digits;
+            }
+        }
+
+        // Leading 8 → 375… is common in BY/RU paste without a country code
+        // that libphonenumber can resolve; try default-country parse already
+        // covered above. Also keep the last 9–10 digits for partial match.
+        if (strlen($digits) >= 9) {
+            $needles[] = substr($digits, -9);
+            $needles[] = substr($digits, -10);
+        }
+
+        return array_values(array_unique(array_filter($needles, fn (string $n) => strlen($n) >= 5)));
+    }
 }

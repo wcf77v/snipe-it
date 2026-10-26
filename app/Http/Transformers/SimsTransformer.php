@@ -156,7 +156,9 @@ class SimsTransformer
      */
     public function transformAssignedTo(Sim $sim): ?array
     {
-        $target = $sim->assignedTo;
+        // MorphTo is named `assigned` (see Sim::assignedTo()); after eager-load
+        // the relation is stored under that name — same as Asset::$assigned.
+        $target = $sim->assigned;
 
         if (! $target) {
             return null;

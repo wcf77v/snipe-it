@@ -376,7 +376,7 @@ class Sim extends SnipeModel
      */
     public function checkIn(?string $note = null, $checkin_at = null, ?int $location_id = null): bool
     {
-        $target = $this->assignedTo;
+        $target = $this->assigned;
 
         if (! $target) {
             // Orphaned assignment (target was hard-deleted): just clear it.

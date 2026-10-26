@@ -37,10 +37,10 @@ class SaveSimRequest extends Request
             $this->merge(['imsi' => preg_replace('/\s/', '', (string) $this->input('imsi'))]);
         }
 
-        // The operator defaults to the plan's, before "required" is checked.
-        if (! $this->filled('supplier_id') && $this->filled('sim_plan_id')) {
+        // Operator always comes from the plan (before "required" is checked).
+        if ($this->filled('sim_plan_id')) {
             $planSupplier = SimPlan::whereKey((int) $this->input('sim_plan_id'))->value('supplier_id');
-            if ($planSupplier && (! $this->isPartialUpdate() || $this->exists('supplier_id'))) {
+            if ($planSupplier) {
                 $this->merge(['supplier_id' => $planSupplier]);
             }
         }

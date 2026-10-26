@@ -77,7 +77,6 @@ class Sim extends SnipeModel
     public const REQUIRABLE_FIELDS = [
         'msisdn',
         'iccid',
-        'supplier_id',
         'sim_plan_id',
         'assigned_user',
         'department_id',
@@ -87,7 +86,8 @@ class Sim extends SnipeModel
         'expiration_date',
     ];
 
-    public const DEFAULT_REQUIRED_FIELDS = ['msisdn', 'supplier_id'];
+    /** Operator (supplier) is taken from the plan, so the plan is required by default. */
+    public const DEFAULT_REQUIRED_FIELDS = ['msisdn', 'sim_plan_id'];
 
     protected $presenter = SimPresenter::class;
 

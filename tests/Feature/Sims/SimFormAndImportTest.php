@@ -19,7 +19,7 @@ class SimFormAndImportTest extends TestCase
 
         $this->settings->set([
             'sim_default_country' => 'BY',
-            'sim_required_fields' => 'msisdn,supplier_id',
+            'sim_required_fields' => 'msisdn,sim_plan_id',
         ]);
     }
 
@@ -28,24 +28,30 @@ class SimFormAndImportTest extends TestCase
         return UploadedFile::fake()->createWithContent('sims.csv', $content);
     }
 
-    public function test_phone_and_operator_are_required_by_default_and_iccid_is_optional()
+    public function test_phone_and_plan_are_required_by_default_and_iccid_is_optional()
     {
         $this->actingAsForApi(User::factory()->createSims()->create())
             ->postJson(route('api.sims.store'), ['iccid' => '8937501234567890123'])
             ->assertStatusMessageIs('error')
-            ->assertMessagesContains(['msisdn', 'supplier_id']);
+            ->assertMessagesContains(['msisdn', 'sim_plan_id']);
+
+        $plan = SimPlan::factory()->create();
 
         $this->actingAsForApi(User::factory()->createSims()->create())
             ->postJson(route('api.sims.store'), [
                 'msisdn' => '8 029 123-45-67',
-                'supplier_id' => Supplier::factory()->create()->id,
+                'sim_plan_id' => $plan->id,
             ])
             ->assertStatusMessageIs('success');
 
-        $this->assertDatabaseHas('sims', ['msisdn' => '+375291234567', 'iccid' => null]);
+        $this->assertDatabaseHas('sims', [
+            'msisdn' => '+375291234567',
+            'iccid' => null,
+            'supplier_id' => $plan->supplier_id,
+        ]);
     }
 
-    public function test_operator_requirement_is_satisfied_by_the_plan()
+    public function test_operator_is_taken_from_the_plan()
     {
         $plan = SimPlan::factory()->create();
 

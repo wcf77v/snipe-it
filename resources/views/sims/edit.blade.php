@@ -57,15 +57,7 @@
                     </x-slot:input>
                 </x-form.row>
 
-                <x-input.supplier-select
-                    :label="trans('admin/sims/table.operator')"
-                    name="supplier_id"
-                    :selected="old('supplier_id', $item->supplier_id)"
-                    :required="$req('supplier_id')"
-                />
-
-                {{-- The plan decides the custom fields (like an asset's model)
-                     and carries the monthly fee. --}}
+                {{-- Operator comes from the plan (tariff); no separate field on the form. --}}
                 <div class="form-group{{ $errors->has('sim_plan_id') ? ' has-error' : '' }}">
                     <label for="sim_plan_id_select" class="col-md-3 control-label">{{ trans('admin/sims/table.plan') }}</label>
                     <div class="col-md-7">

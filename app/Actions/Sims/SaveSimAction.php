@@ -74,9 +74,10 @@ class SaveSimAction
             }
         }
 
-        // The operator defaults to the plan's when left empty.
+        // Operator always follows the plan (tariff); the create/edit form
+        // no longer has a separate supplier field.
         if ($sim->sim_plan_id && ($plan = SimPlan::find($sim->sim_plan_id))) {
-            $sim->supplier_id ??= $plan->supplier_id;
+            $sim->supplier_id = $plan->supplier_id;
         }
 
         if (! $partial || $request->exists('company_id')) {

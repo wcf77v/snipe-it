@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'Import SIM Cards',
+    'help' => 'Upload a CSV file (comma or semicolon separated, UTF-8). A file exported from the SIM list can be imported back as is.',
+    'columns' => 'Recognized columns',
+    'matching_help' => 'A row updates the SIM with the same ICCID, otherwise the SIM with the same phone number, otherwise a new SIM is created. Operator, plan, department, status and location are looked up by name; the user by username, email or employee number.',
+    'template' => 'Download template',
+    'file' => 'CSV file',
+    'create_missing' => 'Create operators and plans that do not exist yet',
+    'check' => 'Check (nothing is saved)',
+    'import' => 'Import',
+    'check_help' => 'Run a check first: it shows what would be created, updated or rejected without saving anything.',
+    'result_check' => 'Check result (nothing was saved)',
+    'result_import' => 'Import result',
+    'dry_run_note' => 'This was only a check. Press "Import" to save these changes.',
+    'created' => 'Created',
+    'updated' => 'Updated',
+    'failed' => 'Errors',
+    'line' => 'Line',
+    'empty' => 'The file has no data rows.',
+    'missing_key_columns' => 'The file needs at least a phone number or an ICCID column.',
+    'not_found' => ':what ":value" was not found.',
+    'note' => 'Checked out by CSV import',
+];

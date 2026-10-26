@@ -240,15 +240,19 @@ return [
     ],
     'simsview' => [
         'name' => 'View SIM Cards',
+        'note' => 'View the SIM cards list and detail pages.',
     ],
     'simscreate' => [
         'name' => 'Create New SIM Cards',
+        'note' => 'Create new SIM cards.',
     ],
     'simsedit' => [
         'name' => 'Edit SIM Cards',
+        'note' => 'Edit existing SIM cards and plans.',
     ],
     'simsdelete' => [
         'name' => 'Delete SIM Cards',
+        'note' => 'Delete SIM cards from the system.',
     ],
     'simscheckout' => [
         'name' => 'Check Out SIM Cards',

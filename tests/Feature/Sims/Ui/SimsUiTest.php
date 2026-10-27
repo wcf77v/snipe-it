@@ -66,8 +66,10 @@ class SimsUiTest extends TestCase
         $this->actingAs(User::factory()->viewSims()->create())
             ->get(route('sims.show', $sim))
             ->assertOk()
+            ->assertSee(strtoupper(trans('admin/custom_fields/general.encrypted')))
             ->assertDontSee('4826')
-            ->assertDontSee('93715284');
+            ->assertDontSee('93715284')
+            ->assertDontSee('sim-secret-pin-to-show');
     }
 
     public function test_show_page_includes_secrets_with_permission()
@@ -77,7 +79,10 @@ class SimsUiTest extends TestCase
         $this->actingAs(User::factory()->viewSims()->viewSimSecrets()->create())
             ->get(route('sims.show', $sim))
             ->assertOk()
-            ->assertSee('4826');
+            ->assertSee('4826')
+            ->assertSee('sim-secret-pin')
+            ->assertSee('showHideEncValue')
+            ->assertSee(\App\Models\Sim::SECRET_MASK);
     }
 
     public function test_create_page_renders()
@@ -94,14 +99,27 @@ class SimsUiTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_edit_page_renders_without_secret_values()
+    public function test_edit_page_includes_current_secret_with_permission()
     {
         $sim = Sim::factory()->create(['pin' => '4826']);
 
         $this->actingAs(User::factory()->editSims()->viewSimSecrets()->create())
             ->get(route('sims.edit', $sim))
             ->assertOk()
-            ->assertDontSee('value="4826"', false);
+            ->assertSee('value="4826"', false)
+            ->assertSee('js-sim-secret-eye');
+    }
+
+    public function test_edit_page_does_not_leak_current_secret_without_permission()
+    {
+        $sim = Sim::factory()->create(['pin' => '4826']);
+
+        $this->actingAs(User::factory()->editSims()->create())
+            ->get(route('sims.edit', $sim))
+            ->assertOk()
+            ->assertDontSee('4826')
+            ->assertDontSee('js-sim-secret-eye')
+            ->assertSee(trans('admin/sims/general.secret_is_set'));
     }
 
     public function test_edit_page_requires_permission()

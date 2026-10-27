@@ -195,7 +195,7 @@
                 />
             </fieldset>
 
-            {{-- ============ 4. Security codes: never pre-filled, blank keeps the stored value ============ --}}
+            {{-- ============ 4. Security codes: current values pre-filled only with sims.secrets; blank keeps the stored value ============ --}}
             <fieldset name="sim-secrets">
                 <x-form.legend :help_text="trans('admin/sims/general.secrets_help')">
                     <x-icon type="locked" class="fa-fw" />
@@ -203,20 +203,45 @@
                 </x-form.legend>
 
                 @foreach (['pin' => 8, 'puk' => 8, 'activation_code' => 1024] as $secret => $secretMaxLength)
+                    @php
+                        // Holders of sims.secrets edit the real value (asset-style);
+                        // everyone else gets an empty field and only the "value is set" hint.
+                        $secretValue = (($canViewSecrets ?? false) && $item->id) ? (string) $item->{$secret} : '';
+                        $secretIsSet = $item->id && $item->{$secret};
+                    @endphp
                     <x-form.row :label="trans('admin/sims/table.'.$secret)" :name="$secret" input_div_class="col-md-5">
                         <x-slot:input>
-                            <input
-                                type="password"
-                                class="form-control"
-                                id="{{ $secret }}"
-                                name="{{ $secret }}"
-                                maxlength="{{ $secretMaxLength }}"
-                                autocomplete="new-password"
-                                @if ($secret !== 'activation_code') inputmode="numeric" @endif
-                                placeholder="{{ ($item->id && $item->{$secret}) ? trans('admin/sims/general.secret_is_set') : '' }}"
-                                aria-label="{{ trans('admin/sims/table.'.$secret) }}"
-                            >
-                            @if ($item->id && $item->{$secret})
+                            <div @if ($secretValue !== '') class="input-group" @endif>
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="{{ $secret }}"
+                                    name="{{ $secret }}"
+                                    maxlength="{{ $secretMaxLength }}"
+                                    autocomplete="new-password"
+                                    @if ($secret !== 'activation_code') inputmode="numeric" @endif
+                                    @if ($secretValue !== '')
+                                        value="{{ $secretValue }}"
+                                    @else
+                                        placeholder="{{ $secretIsSet ? trans('admin/sims/general.secret_is_set') : '' }}"
+                                    @endif
+                                    aria-label="{{ trans('admin/sims/table.'.$secret) }}"
+                                >
+                                @if ($secretValue !== '')
+                                    <span class="input-group-btn">
+                                        <button
+                                            type="button"
+                                            class="btn btn-default js-sim-secret-eye"
+                                            data-target="{{ $secret }}"
+                                            title="{{ trans('admin/sims/general.show_secret') }}"
+                                            aria-label="{{ trans('admin/sims/general.show_secret') }}"
+                                        >
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </span>
+                                @endif
+                            </div>
+                            @if ($secretIsSet)
                                 <label class="form-control" style="border: none; padding-left: 0;">
                                     <input type="checkbox" name="clear_{{ $secret }}" value="1" aria-label="clear_{{ $secret }}">
                                     {{ trans('admin/sims/general.clear_secret') }}
@@ -254,6 +279,16 @@
 
 @section('moar_scripts')
 <script nonce="{{ csrf_token() }}">
+    // Reveal/hide a pre-filled security code (sims.secrets holders only).
+    $('.js-sim-secret-eye').on('click', function () {
+        var $input = $('#' + $(this).data('target'));
+        var reveal = $input.attr('type') === 'password';
+        $input.attr('type', reveal ? 'text' : 'password');
+        $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+        $(this).attr('title', reveal ? "{{ trans('admin/sims/general.hide_secret') }}" : "{{ trans('admin/sims/general.show_secret') }}");
+        $(this).attr('aria-label', $(this).attr('title'));
+    });
+
     // Swap in the custom fields of the selected plan, keeping whatever the
     // user already typed into fields that exist in both fieldsets.
     $(function () {

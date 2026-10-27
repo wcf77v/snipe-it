@@ -168,22 +168,25 @@
                                     </tr>
                                 @endif
 
-                                {{-- Secrets: only rendered at all for users with sims.secrets. --}}
-                                @if ($canViewSecrets)
-                                    @foreach (\App\Models\Sim::SECRET_FIELDS as $secret)
-                                        @if ($sim->{$secret})
-                                            <tr>
-                                                <th><x-icon type="locked" class="fa-fw" /> {{ trans('admin/sims/table.'.$secret) }}</th>
-                                                <td>
-                                                    <span class="js-sim-secret" data-secret="{{ $sim->{$secret} }}">{{ \App\Models\Sim::SECRET_MASK }}</span>
-                                                    <button type="button" class="btn btn-xs btn-default js-sim-secret-toggle" aria-label="{{ trans('admin/sims/general.show_secret') }}">
-                                                        {{ trans('admin/sims/general.show_secret') }}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endif
-                                    @endforeach
-                                @endif
+                                {{-- Secrets: the row renders for every viewer, masked like encrypted
+                                     asset fields; the value itself only for users with sims.secrets,
+                                     revealed through the shared asset-style lock toggle. --}}
+                                @foreach (\App\Models\Sim::SECRET_FIELDS as $secret)
+                                    @if ($sim->{$secret})
+                                        <tr>
+                                            <th><x-icon type="locked" class="fa-fw" /> {{ trans('admin/sims/table.'.$secret) }}</th>
+                                            <td>
+                                                @if ($canViewSecrets)
+                                                    <i class="fas fa-lock fa-fw pull-right" style="font-size: 16px;" data-tooltip="true" data-placement="top" title="{{ trans('admin/custom_fields/general.value_encrypted') }}" onclick="showHideEncValue(this)" id="sim-secret-{{ $secret }}"></i>
+                                                    <span id="sim-secret-{{ $secret }}-to-hide" style="font-size: 20px;vertical-align:middle;">{{ \App\Models\Sim::SECRET_MASK }}</span>
+                                                    <span id="sim-secret-{{ $secret }}-to-show" style="font-size: 0;">{{ $sim->{$secret} }}</span>
+                                                @else
+                                                    {{ strtoupper(trans('admin/custom_fields/general.encrypted')) }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @endforeach
 
                                 @foreach ($sim->customFields() as $field)
                                     @php $fieldValue = $sim->rawCustomFieldValue($field); @endphp
@@ -257,20 +260,6 @@
     @can('files', $sim)
         <x-modals.upload-file item-type="sims" :item-id="$sim->id" />
     @endcan
-
-    @if ($canViewSecrets)
-        <script nonce="{{ csrf_token() }}">
-            $(function () {
-                $('.js-sim-secret-toggle').on('click', function () {
-                    var $value = $(this).siblings('.js-sim-secret');
-                    var revealed = $value.data('revealed') === true;
-                    $value.text(revealed ? '{{ \App\Models\Sim::SECRET_MASK }}' : $value.data('secret'));
-                    $value.data('revealed', ! revealed);
-                    $(this).text(revealed ? '{{ trans('admin/sims/general.show_secret') }}' : '{{ trans('admin/sims/general.hide_secret') }}');
-                });
-            });
-        </script>
-    @endif
 
     @include ('partials.bootstrap-table', ['exportFile' => 'sim-'.$sim->id.'-export', 'search' => false])
 @endsection

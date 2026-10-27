@@ -34,7 +34,8 @@ class SimsController extends Controller
         $this->authorize('create', Sim::class);
 
         return view('sims/edit')
-            ->with('item', new Sim(['sim_type' => Sim::TYPE_PHYSICAL]));
+            ->with('item', new Sim(['sim_type' => Sim::TYPE_PHYSICAL]))
+            ->with('canViewSecrets', Gate::allows('viewSecrets', Sim::class));
     }
 
     public function store(SaveSimRequest $request): RedirectResponse
@@ -79,7 +80,8 @@ class SimsController extends Controller
         }
 
         return view('sims/edit')
-            ->with('item', $sim);
+            ->with('item', $sim)
+            ->with('canViewSecrets', Gate::allows('viewSecrets', $sim));
     }
 
     public function update(SaveSimRequest $request, Sim $sim): RedirectResponse
@@ -175,6 +177,7 @@ class SimsController extends Controller
         $cloned->id = null;
 
         return view('sims/edit')
-            ->with('item', $cloned);
+            ->with('item', $cloned)
+            ->with('canViewSecrets', Gate::allows('viewSecrets', Sim::class));
     }
 }

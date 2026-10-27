@@ -234,6 +234,42 @@ return [
         'name' => '归还组件',
         'note' => '将当前已签出的组件归还至库存。',
     ],
+    'sims' => [
+        'name' => 'SIM Cards',
+        'note' => 'Grants access to the SIM Cards section of the application.',
+    ],
+    'simsview' => [
+        'name' => 'View SIM Cards',
+        'note' => 'View the SIM cards list and detail pages.',
+    ],
+    'simscreate' => [
+        'name' => 'Create New SIM Cards',
+        'note' => 'Create new SIM cards.',
+    ],
+    'simsedit' => [
+        'name' => 'Edit SIM Cards',
+        'note' => 'Edit existing SIM cards and plans.',
+    ],
+    'simsdelete' => [
+        'name' => 'Delete SIM Cards',
+        'note' => 'Delete SIM cards from the system.',
+    ],
+    'simscheckout' => [
+        'name' => 'Check Out SIM Cards',
+        'note' => 'Assign SIM cards to users, assets or locations.',
+    ],
+    'simscheckin' => [
+        'name' => 'Check In SIM Cards',
+        'note' => 'Check SIM cards back into inventory.',
+    ],
+    'simssecrets' => [
+        'name' => 'View SIM Secrets',
+        'note' => 'Allows the user to view PIN/PUK codes, eSIM activation codes and encrypted SIM custom fields.',
+    ],
+    'simsfiles' => [
+        'name' => 'Manage SIM Card Files',
+        'note' => 'Allows the user to upload, download, and delete files associated with SIM cards.',
+    ],
     'kits' => [
         'name' => '预定义的 Kits',
         'note' => '授予访问应用预定义工具部分的权限。',

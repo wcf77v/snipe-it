@@ -231,6 +231,13 @@ class SimsApiTest extends TestCase
             'target_id' => $target->id,
         ]);
 
+        // Show must resolve the assignee without an index-style eager load.
+        $this->actingAsForApi(User::factory()->viewSims()->create())
+            ->getJson(route('api.sims.show', $sim))
+            ->assertOk()
+            ->assertJsonPath('assigned_to.id', $target->id)
+            ->assertJsonPath('assigned_to.type', 'user');
+
         $this->actingAsForApi($admin)
             ->postJson(route('api.sims.checkin', $sim), ['note' => 'returned'])
             ->assertOk()
@@ -244,6 +251,57 @@ class SimsApiTest extends TestCase
             'item_id' => $sim->id,
             'action_type' => 'checkin from',
         ]);
+        $this->assertDatabaseMissing('action_logs', [
+            'item_type' => Sim::class,
+            'item_id' => $sim->id,
+            'action_type' => 'force checkin',
+        ]);
+    }
+
+    public function test_checkin_without_eager_load_is_not_force_checkin()
+    {
+        $owner = User::factory()->create();
+        $sim = Sim::factory()->checkedOutToUser($owner)->create();
+        $admin = User::factory()->checkinSims()->create();
+
+        // Fresh model, no assignedTo relation loaded — previously this
+        // took the orphan/force-checkin path and broke rebind history.
+        $bare = Sim::findOrFail($sim->id);
+        $this->assertFalse($bare->relationLoaded('assignedTo'));
+        $this->assertNotNull($bare->assignedTarget());
+
+        $this->actingAs($admin);
+        $this->assertTrue($bare->checkIn('returned bare'));
+
+        $this->assertNull($bare->fresh()->assigned_to);
+        $this->assertDatabaseHas('action_logs', [
+            'item_type' => Sim::class,
+            'item_id' => $sim->id,
+            'action_type' => 'checkin from',
+            'target_type' => User::class,
+            'target_id' => $owner->id,
+        ]);
+        $this->assertDatabaseMissing('action_logs', [
+            'item_type' => Sim::class,
+            'item_id' => $sim->id,
+            'action_type' => 'force checkin',
+        ]);
+    }
+
+    public function test_checkout_copies_user_department()
+    {
+        $department = \App\Models\Department::factory()->create();
+        $owner = User::factory()->create(['department_id' => $department->id]);
+        $sim = Sim::factory()->create(['department_id' => null]);
+
+        $this->actingAsForApi(User::factory()->checkoutSims()->create())
+            ->postJson(route('api.sims.checkout', $sim), [
+                'checkout_to_type' => 'user',
+                'assigned_user' => $owner->id,
+            ])
+            ->assertStatusMessageIs('success');
+
+        $this->assertEquals($department->id, $sim->fresh()->department_id);
     }
 
     public function test_can_checkout_to_asset_and_location()

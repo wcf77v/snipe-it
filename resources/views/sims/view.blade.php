@@ -68,7 +68,10 @@
                                 @if ($sim->msisdn)
                                     <tr>
                                         <th>{{ trans('admin/sims/table.msisdn') }}</th>
-                                        <td><a href="tel:{{ $sim->msisdn }}">{{ $sim->formatted_msisdn }}</a> <span class="text-muted">({{ $sim->phone_country }})</span></td>
+                                        <td>
+                                            <x-copy-to-clipboard copy_what="msisdn">{{ $sim->formatted_msisdn }}</x-copy-to-clipboard>
+                                            <span class="text-muted">({{ $sim->phone_country }})</span>
+                                        </td>
                                     </tr>
                                 @endif
                                 @if ($sim->imsi)

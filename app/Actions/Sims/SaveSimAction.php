@@ -189,6 +189,10 @@ class SaveSimAction
             if (Gate::denies('checkin', $sim) || ! $sim->checkIn($note)) {
                 throw ValidationException::withMessages(['assigned_user' => trans('admin/sims/message.checkin.error')]);
             }
+            // Reload columns only — avoid refresh() reloading a stale
+            // morph relation under a mismatched name.
+            $sim->unsetRelation('assignedTo');
+            $sim->unsetRelation('assigned');
             $sim->refresh();
         }
 

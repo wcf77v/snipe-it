@@ -2,6 +2,7 @@
 
 return [
     'does_not_exist' => 'SIM card does not exist or you do not have permission to view it.',
+    'lookup_multiple' => 'Several SIM cards match ":term". Refine the search below.',
     'user_has_sims' => 'This user still has SIM cards checked out. Please check them in before deleting the user.',
 
     'create' => [

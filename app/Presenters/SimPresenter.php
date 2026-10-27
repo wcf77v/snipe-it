@@ -3,6 +3,7 @@
 namespace App\Presenters;
 
 use App\Models\Sim;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Class SimPresenter
@@ -36,7 +37,7 @@ class SimPresenter extends Presenter
                 'field' => 'iccid',
                 'searchable' => true,
                 'sortable' => true,
-                'switchable' => false,
+                'switchable' => true,
                 'title' => trans('admin/sims/table.iccid'),
                 'visible' => true,
                 'formatter' => 'simsLinkFormatter',
@@ -48,7 +49,9 @@ class SimPresenter extends Presenter
                 'switchable' => true,
                 'title' => trans('admin/sims/table.msisdn'),
                 'visible' => true,
-                'formatter' => 'phoneFormatter',
+                // Link to the SIM (like name/ICCID), not tel: — clicking a
+                // number must open the card, not start a phone call.
+                'formatter' => 'simsLinkFormatter',
             ], [
                 'field' => 'imsi',
                 'searchable' => true,
@@ -95,6 +98,14 @@ class SimPresenter extends Presenter
                 'visible' => false,
                 'class' => 'text-right',
                 'footerFormatter' => 'sumFormatter',
+            ], [
+                'field' => 'status',
+                'searchable' => true,
+                'sortable' => true,
+                'switchable' => true,
+                'title' => trans('general.status'),
+                'visible' => true,
+                'formatter' => 'statuslabelsLinkObjFormatter',
             ], [
                 'field' => 'assigned_to',
                 'searchable' => false,
@@ -152,6 +163,14 @@ class SimPresenter extends Presenter
                 'visible' => false,
                 'formatter' => 'dateDisplayFormatter',
             ], [
+                'field' => 'last_checkin',
+                'searchable' => false,
+                'sortable' => true,
+                'switchable' => true,
+                'title' => trans('admin/hardware/table.last_checkin_date'),
+                'visible' => false,
+                'formatter' => 'dateDisplayFormatter',
+            ], [
                 'field' => 'expected_checkin',
                 'searchable' => false,
                 'sortable' => true,
@@ -193,6 +212,35 @@ class SimPresenter extends Presenter
                 'formatter' => 'dateDisplayFormatter',
             ],
         ];
+
+        // Secrets only appear in the column chooser for callers who may
+        // see them; the API already omits the values otherwise.
+        if (Gate::allows('viewSecrets', Sim::class)) {
+            $layout = array_merge($layout, [
+                [
+                    'field' => 'pin',
+                    'searchable' => false,
+                    'sortable' => false,
+                    'switchable' => true,
+                    'title' => trans('admin/sims/table.pin'),
+                    'visible' => false,
+                ], [
+                    'field' => 'puk',
+                    'searchable' => false,
+                    'sortable' => false,
+                    'switchable' => true,
+                    'title' => trans('admin/sims/table.puk'),
+                    'visible' => false,
+                ], [
+                    'field' => 'activation_code',
+                    'searchable' => false,
+                    'sortable' => false,
+                    'switchable' => true,
+                    'title' => trans('admin/sims/table.activation_code'),
+                    'visible' => false,
+                ],
+            ]);
+        }
 
         // Custom fields from the SIM fieldset, rendered by the same
         // customFieldsFormatter the asset listing uses.

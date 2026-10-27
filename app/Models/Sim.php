@@ -286,10 +286,32 @@ class Sim extends SnipeModel
 
     /**
      * The user, asset or location this SIM is checked out to.
+     *
+     * Morph name matches the method (`assignedTo`) so `$sim->assignedTo`
+     * and `with('assignedTo')` stay in sync. Do not rename this to the
+     * Asset-style morphTo('assigned') — that leaves `$sim->assigned` null
+     * unless eager-loaded and makes checkIn take the orphan/force path.
      */
     public function assignedTo(): MorphTo
     {
-        return $this->morphTo('assigned', 'assigned_type', 'assigned_to')->withTrashed();
+        return $this->morphTo(__FUNCTION__, 'assigned_type', 'assigned_to')->withTrashed();
+    }
+
+    /**
+     * Checkout target whether or not the relation was eager-loaded.
+     */
+    public function assignedTarget(): User|Asset|Location|null
+    {
+        if ($this->relationLoaded('assignedTo')) {
+            return $this->getRelation('assignedTo');
+        }
+
+        // Legacy alias if anything still eager-loads as `assigned`.
+        if ($this->relationLoaded('assigned')) {
+            return $this->getRelation('assigned');
+        }
+
+        return $this->assignedTo;
     }
 
     public function assetlog(): HasMany
@@ -383,9 +405,18 @@ class Sim extends SnipeModel
             $this->location_id = $target->location_id;
         }
 
+        // Owner's department follows the user on checkout (same as the
+        // create/edit form when department_id is left blank).
+        if ($target instanceof User && $target->department_id) {
+            $this->department_id = $target->department_id;
+        }
+
         if (! $this->save()) {
             return false;
         }
+
+        $this->unsetRelation('assignedTo');
+        $this->unsetRelation('assigned');
 
         event(new CheckoutableCheckedOut($this, $target, $admin ?? auth()->user(), $note, $originalValues));
 
@@ -401,7 +432,7 @@ class Sim extends SnipeModel
      */
     public function checkIn(?string $note = null, $checkin_at = null, ?int $location_id = null): bool
     {
-        $target = $this->assigned;
+        $target = $this->assignedTarget();
 
         if (! $target) {
             // Orphaned assignment (target was hard-deleted): just clear it.
@@ -409,6 +440,8 @@ class Sim extends SnipeModel
             $this->assigned_type = null;
             $this->expected_checkin = null;
             $this->last_checkin = $checkin_at ?: now();
+            $this->unsetRelation('assignedTo');
+            $this->unsetRelation('assigned');
             $saved = $this->save();
             if ($saved) {
                 $this->logForceCheckin($note);
@@ -427,6 +460,9 @@ class Sim extends SnipeModel
         if ($location_id) {
             $this->location_id = $location_id;
         }
+
+        $this->unsetRelation('assignedTo');
+        $this->unsetRelation('assigned');
 
         if (! $this->save()) {
             return false;

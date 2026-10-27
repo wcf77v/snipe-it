@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Assets;
 
+use App\Actions\Search\ResolveTagLookupAction;
 use App\Enums\FileStorage;
 use App\Events\CheckoutableCheckedIn;
 use App\Helpers\Helper;
@@ -637,7 +638,8 @@ class AssetsController extends Controller
     }
 
     /**
-     * Searches the assets table by asset tag, and redirects if it finds one
+     * Navbar tag lookup: exact unique asset_tag first (unchanged), then a
+     * unique SIM by ICCID / MSISDN when no asset matches.
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
      *
@@ -648,19 +650,34 @@ class AssetsController extends Controller
         $tag = $tag ? $tag : $request->input('assetTag');
         $topsearch = ($request->input('topsearch') == 'true');
 
-        // Search for an exact and unique asset tag match
-        $assets = Asset::where('asset_tag', '=', $tag);
+        $result = ResolveTagLookupAction::run((string) $tag);
 
-        // If not a unique result, redirect to the index view
-        if ($assets->count() != 1) {
-            return redirect()->route('hardware.index')
-                ->with('search', $tag)
-                ->with('warning', trans('admin/hardware/message.does_not_exist_var', ['asset_tag' => $tag]));
+        if ($result['outcome'] === 'asset') {
+            $this->authorize('view', $result['asset']);
+
+            return redirect()->route('hardware.show', $result['asset']->id)->with('topsearch', $topsearch);
         }
-        $asset = $assets->first();
-        $this->authorize('view', $asset);
 
-        return redirect()->route('hardware.show', $asset->id)->with('topsearch', $topsearch);
+        if ($result['outcome'] === 'sim') {
+            $this->authorize('view', $result['sim']);
+
+            return redirect()->route('sims.show', $result['sim'])->with('topsearch', $topsearch);
+        }
+
+        if ($result['outcome'] === 'sims_index') {
+            return redirect()->route('sims.index')
+                ->with('search', $result['tag'])
+                ->with('warning', trans('admin/sims/message.lookup_multiple', ['term' => $result['tag']]));
+        }
+
+        if ($result['outcome'] === 'assets_index') {
+            return redirect()->route('hardware.index')
+                ->with('search', $result['tag']);
+        }
+
+        return redirect()->route('hardware.index')
+            ->with('search', $result['tag'])
+            ->with('warning', trans('general.lookup_not_found', ['term' => $result['tag']]));
     }
 
     /**

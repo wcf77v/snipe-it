@@ -41,7 +41,7 @@ return [
 
     'assetsview' => [
         'name' => 'Varlıkları Görüntüle',
-        'note' => 'Note that users with this permission will also be able to see (not modify or delete) files uploaded to the asset model as well. This is to make it easier to share common documents like user manuals across assets without having to upload them to every asset, and to avoid having to grant the user permission to modify asset files. Users with this permission will also be able to view edit and checkin history.',
+        'note' => 'Bu izne sahip kullanıcıların varlık modeline yüklenen dosyaları da görebileceğini unutmayın (değiştiremez veya silemezler). Bu, kullanım kılavuzları gibi ortak belgeleri her varlığa ayrı ayrı yüklemeden paylaşmayı ve kullanıcıya varlık dosyalarını değiştirme izni vermek zorunda kalmamayı sağlar. Bu izne sahip kullanıcılar düzenleme ve teslim alma geçmişini de görüntüleyebilir.',
     ],
 
     'assetscreate' => [
@@ -72,8 +72,8 @@ return [
     ],
 
     'assetsviewrequestable' => [
-        'name' => 'View Requestable Items',
-        'note' => 'Allows the user to view items that are marked as requestable.',
+        'name' => 'Talep Edilebilir Öğeleri Görüntüle',
+        'note' => 'Kullanıcının talep edilebilir olarak işaretlenmiş öğeleri görüntülemesini sağlar.',
     ],
 
     'assetsviewencrypted-custom-fields' => [
@@ -234,6 +234,42 @@ return [
         'name' => 'Bileşenleri Geri Al',
         'note' => 'Şu anda çıkış yapılmış olan bileşenleri tekrar envantere alır.',
     ],
+    'sims' => [
+        'name' => 'SIM Cards',
+        'note' => 'Grants access to the SIM Cards section of the application.',
+    ],
+    'simsview' => [
+        'name' => 'View SIM Cards',
+        'note' => 'View the SIM cards list and detail pages.',
+    ],
+    'simscreate' => [
+        'name' => 'Create New SIM Cards',
+        'note' => 'Create new SIM cards.',
+    ],
+    'simsedit' => [
+        'name' => 'Edit SIM Cards',
+        'note' => 'Edit existing SIM cards and plans.',
+    ],
+    'simsdelete' => [
+        'name' => 'Delete SIM Cards',
+        'note' => 'Delete SIM cards from the system.',
+    ],
+    'simscheckout' => [
+        'name' => 'Check Out SIM Cards',
+        'note' => 'Assign SIM cards to users, assets or locations.',
+    ],
+    'simscheckin' => [
+        'name' => 'Check In SIM Cards',
+        'note' => 'Check SIM cards back into inventory.',
+    ],
+    'simssecrets' => [
+        'name' => 'View SIM Secrets',
+        'note' => 'Allows the user to view PIN/PUK codes, eSIM activation codes and encrypted SIM custom fields.',
+    ],
+    'simsfiles' => [
+        'name' => 'Manage SIM Card Files',
+        'note' => 'Allows the user to upload, download, and delete files associated with SIM cards.',
+    ],
     'kits' => [
         'name' => 'Ön Tanımlı Setler',
         'note' => 'Uygulamanın Ön Tanımlı Kitler bölümüne erişim sağlar.',
@@ -256,7 +292,7 @@ return [
     ],
     'usersview' => [
         'name' => 'Kullanıcıları Görüntüle',
-        'note' => 'Note that users with this permission will also be able to see (not modify or delete) files uploaded to the user as well. Users with this permission will also be able to view edit and checkin history.',
+        'note' => 'Bu izne sahip kullanıcıların kullanıcı profiline yüklenen dosyaları da görebileceğini unutmayın (değiştiremez veya silemezler). Bu kullanıcılar düzenleme ve teslim alma geçmişini de görüntüleyebilir.',
     ],
     'userscreate' => [
         'name' => 'Yeni Kullanıcılar Oluştur',

@@ -10,7 +10,7 @@ return [
     'encrypt_field' => 'A mező értékének titkosítása az adatbázisban',
     'encrypt_field_help' => 'Figyelmeztetés: egy mező titkosítása kereshetetlenné teszi azt.',
     'encrypted' => 'Titkosított',
-    'fieldset' => 'Mezőcsoportok',
+    'fieldset' => 'Mezőcsoport',
     'qty_fields' => 'Mennyiségi mezők',
     'fieldsets' => 'Mezőcsoportok',
     'fieldset_name' => 'Mezőcsoport neve',

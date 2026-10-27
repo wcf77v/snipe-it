@@ -21,6 +21,8 @@ use App\Models\Maintenance;
 use App\Models\MaintenanceType;
 use App\Models\Manufacturer;
 use App\Models\PredefinedKit;
+use App\Models\Sim;
+use App\Models\SimPlan;
 use App\Models\Statuslabel;
 use App\Models\Supplier;
 use App\Models\User;
@@ -42,6 +44,8 @@ use App\Policies\MaintenancePolicy;
 use App\Policies\MaintenanceTypePolicy;
 use App\Policies\ManufacturerPolicy;
 use App\Policies\PredefinedKitPolicy;
+use App\Policies\SimPlanPolicy;
+use App\Policies\SimPolicy;
 use App\Policies\StatuslabelPolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\UserPolicy;
@@ -61,7 +65,7 @@ class AuthServiceProvider extends ServiceProvider
      *
      * See SnipePermissionsPolicy for additional information.
      *
-     * @var array
+     * @var array<class-string, class-string>
      */
     protected $policies = [
         Accessory::class => AccessoryPolicy::class,
@@ -80,6 +84,8 @@ class AuthServiceProvider extends ServiceProvider
         Maintenance::class => MaintenancePolicy::class,
         MaintenanceType::class => MaintenanceTypePolicy::class,
         PredefinedKit::class => PredefinedKitPolicy::class,
+        Sim::class => SimPolicy::class,
+        SimPlan::class => SimPlanPolicy::class,
         Statuslabel::class => StatuslabelPolicy::class,
         Supplier::class => SupplierPolicy::class,
         User::class => UserPolicy::class,
@@ -354,6 +360,8 @@ class AuthServiceProvider extends ServiceProvider
                 Statuslabel::class,
                 Depreciation::class,
                 AssetModel::class,
+                Sim::class,
+                SimPlan::class,
             ];
 
             foreach ($resources as $resource) {
@@ -368,6 +376,7 @@ class AuthServiceProvider extends ServiceProvider
                 Consumable::class,
                 Component::class,
                 License::class,
+                Sim::class,
             ];
 
             foreach ($checkoutables as $checkoutable) {

@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Actions\Acceptances\CreateCheckoutAcceptanceAction;
+use App\Events\CheckoutableCheckedIn;
 use App\Events\CheckoutableCheckedOut;
 use App\Mail\CheckinAccessoryMail;
 use App\Mail\CheckinAssetMail;
@@ -13,15 +14,19 @@ use App\Mail\CheckoutAssetMail;
 use App\Mail\CheckoutComponentMail;
 use App\Mail\CheckoutConsumableMail;
 use App\Mail\CheckoutLicenseMail;
+use App\Mail\CheckinSimMail;
+use App\Mail\CheckoutSimMail;
 use App\Models\Accessory;
 use App\Models\Asset;
 use App\Models\Category;
 use App\Models\CheckoutAcceptance;
+use App\Models\Company;
 use App\Models\Component;
 use App\Models\Consumable;
 use App\Models\LicenseSeat;
 use App\Models\Location;
 use App\Models\Setting;
+use App\Models\Sim;
 use App\Models\User;
 use App\Notifications\CheckinAccessoryNotification;
 use App\Notifications\CheckinAssetNotification;
@@ -32,6 +37,8 @@ use App\Notifications\CheckoutAssetNotification;
 use App\Notifications\CheckoutComponentNotification;
 use App\Notifications\CheckoutConsumableNotification;
 use App\Notifications\CheckoutLicenseSeatNotification;
+use App\Notifications\CheckinSimNotification;
+use App\Notifications\CheckoutSimNotification;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Database\Eloquent\Collection;
@@ -53,7 +60,7 @@ class CheckoutableListener
     /**
      * Register the listeners for the subscriber.
      *
-     * @param  Illuminate\Events\Dispatcher  $events
+     * @param  \Illuminate\Events\Dispatcher  $events
      */
     public function subscribe($events)
     {
@@ -82,7 +89,7 @@ class CheckoutableListener
 
         $shouldSendEmailToUser = $this->shouldSendCheckoutEmailToUser($event->checkoutable);
         $shouldSendEmailToAlertAddress = $this->shouldSendEmailToAlertAddress($acceptance);
-        $shouldSendWebhookNotification = $this->shouldSendWebhookNotification();
+        $shouldSendWebhookNotification = $this->shouldSendWebhookNotification($event->checkoutable);
 
         if ($this->shouldSkipInitialAcceptanceEmail($event, $acceptance)) {
             $shouldSendEmailToUser = false;
@@ -127,41 +134,43 @@ class CheckoutableListener
         }
 
         if ($shouldSendWebhookNotification) {
+            $webhookSource = $this->webhookSource($event->checkoutable);
+
             try {
-                if ($this->newMicrosoftTeamsWebhookEnabled()) {
+                if ($this->newMicrosoftTeamsWebhookEnabled($event->checkoutable)) {
                     $message = $this->getCheckoutNotification($event, $acceptance, true)->toMicrosoftTeams();
-                    $notification = new TeamsNotification(Setting::getSettings()->webhook_endpoint);
+                    $notification = new TeamsNotification($webhookSource->webhook_endpoint);
                     $notification->success()->sendMessage($message[0], $message[1]);  // Send the message to Microsoft Teams
                 } else {
-                    Notification::route($this->webhookSelected(), Setting::getSettings()->webhook_endpoint)
+                    Notification::route($this->webhookSelected($event->checkoutable), $webhookSource->webhook_endpoint)
                         ->notify($this->getCheckoutNotification($event, $acceptance, true));
                 }
             } catch (ClientException $e) {
                 $status = $e->getResponse()->getStatusCode();
 
                 if (strpos($e->getMessage(), 'channel_not_found') !== false) {
-                    Log::warning(Setting::getSettings()->webhook_selected.' notification failed: '.$e->getMessage());
+                    Log::warning($webhookSource->webhook_selected.' notification failed: '.$e->getMessage());
 
-                    return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_channel_not_found'));
+                    return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_channel_not_found'));
                 } else {
                     if ($status >= 500 || $status === null) {
-                        Log::error(Setting::getSettings()->webhook_selected.' notification failed: '.$e->getMessage());
+                        Log::error($webhookSource->webhook_selected.' notification failed: '.$e->getMessage());
                     } else {
                         Log::warning('ClientException caught during checkin notification: '.$e->getMessage());
 
-                        return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
+                        return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
                     }
                 }
 
-                return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
+                return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
             } catch (Exception $e) {
-                Log::warning(ucfirst(Setting::getSettings()->webhook_selected).' webhook notification failed:', [
+                Log::warning(ucfirst($webhookSource->webhook_selected).' webhook notification failed:', [
                     'error' => $e->getMessage(),
-                    'webhook_endpoint' => Setting::getSettings()->webhook_endpoint,
+                    'webhook_endpoint' => $webhookSource->webhook_endpoint,
                     'event' => $event,
                 ]);
 
-                return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
+                return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
             }
         }
     }
@@ -183,7 +192,7 @@ class CheckoutableListener
 
         $shouldSendEmailToUser = $this->checkoutableCategoryShouldSendEmail($event->checkoutable);
         $shouldSendEmailToAlertAddress = $this->shouldSendEmailToAlertAddress();
-        $shouldSendWebhookNotification = $this->shouldSendWebhookNotification();
+        $shouldSendWebhookNotification = $this->shouldSendWebhookNotification($event->checkoutable);
         if (! $shouldSendEmailToUser && ! $shouldSendEmailToAlertAddress && ! $shouldSendWebhookNotification) {
             return;
         }
@@ -226,39 +235,40 @@ class CheckoutableListener
 
         if ($shouldSendWebhookNotification) {
             // Send Webhook notification
+            $webhookSource = $this->webhookSource($event->checkoutable);
             try {
-                if ($this->newMicrosoftTeamsWebhookEnabled()) {
+                if ($this->newMicrosoftTeamsWebhookEnabled($event->checkoutable)) {
                     $message = $this->getCheckinNotification($event, true)->toMicrosoftTeams();
-                    $notification = new TeamsNotification(Setting::getSettings()->webhook_endpoint);
+                    $notification = new TeamsNotification($webhookSource->webhook_endpoint);
                     $notification->success()->sendMessage($message[0], $message[1]); // Send the message to Microsoft Teams
                 } else {
-                    Notification::route($this->webhookSelected(), Setting::getSettings()->webhook_endpoint)
+                    Notification::route($this->webhookSelected($event->checkoutable), $webhookSource->webhook_endpoint)
                         ->notify($this->getCheckinNotification($event, true));
                 }
             } catch (ClientException $e) {
                 $status = $e->getResponse()->getStatusCode();
 
                 if (strpos($e->getMessage(), 'channel_not_found') !== false) {
-                    Log::warning(Setting::getSettings()->webhook_selected.' notification failed: '.$e->getMessage());
+                    Log::warning($webhookSource->webhook_selected.' notification failed: '.$e->getMessage());
 
-                    return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_channel_not_found'));
+                    return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_channel_not_found'));
                 } else {
                     if ($status >= 500 || $status === null) {
-                        Log::error(Setting::getSettings()->webhook_selected.' notification failed: '.$e->getMessage());
+                        Log::error($webhookSource->webhook_selected.' notification failed: '.$e->getMessage());
                     } else {
                         Log::warning('ClientException caught during checkin notification: '.$e->getMessage());
 
-                        return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
+                        return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
                     }
                 }
             } catch (Exception $e) {
-                Log::warning(ucfirst(Setting::getSettings()->webhook_selected).' webhook notification failed:', [
+                Log::warning(ucfirst($webhookSource->webhook_selected).' webhook notification failed:', [
                     'error' => $e->getMessage(),
-                    'webhook_endpoint' => Setting::getSettings()->webhook_endpoint,
+                    'webhook_endpoint' => $webhookSource->webhook_endpoint,
                     'event' => $event,
                 ]);
 
-                return redirect()->back()->with('warning', ucfirst(Setting::getSettings()->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
+                return redirect()->back()->with('warning', ucfirst($webhookSource->webhook_selected).trans('admin/settings/message.webhook.webhook_fail'));
             }
         }
     }
@@ -323,7 +333,7 @@ class CheckoutableListener
     /**
      * Generates a checkout acceptance
      *
-     * @param  Event  $event
+     * @param  CheckoutableCheckedOut  $event
      * @return mixed
      */
     private function getCheckoutAcceptance($event)
@@ -401,11 +411,14 @@ class CheckoutableListener
             case Component::class:
                 $notificationClass = CheckinComponentNotification::class;
                 break;
+            case Sim::class:
+                $notificationClass = CheckinSimNotification::class;
+                break;
         }
 
         Log::debug('Notification class: '.$notificationClass);
 
-        return new $notificationClass($checkoutable, $event->checkedOutTo, $event->checkedInBy, $event->note);
+        return new $notificationClass($checkoutable, $event->checkedOutTo, $event->checkedInBy, $event->note, $this->webhookSource($checkoutable));
     }
 
     /**
@@ -436,9 +449,12 @@ class CheckoutableListener
             case Component::class:
                 $notificationClass = CheckoutComponentNotification::class;
                 break;
+            case Sim::class:
+                $notificationClass = CheckoutSimNotification::class;
+                break;
         }
 
-        return new $notificationClass($checkoutable, $event->checkedOutTo, $event->checkedOutBy, $acceptance, $event->note);
+        return new $notificationClass($checkoutable, $event->checkedOutTo, $event->checkedOutBy, $acceptance, $event->note, $this->webhookSource($checkoutable));
     }
 
     private function getCheckoutableForNotification(Model $checkoutable, bool $shouldRefresh): Model
@@ -458,6 +474,7 @@ class CheckoutableListener
             LicenseSeat::class => CheckoutLicenseMail::class,
             Consumable::class => CheckoutConsumableMail::class,
             Component::class => CheckoutComponentMail::class,
+            Sim::class => CheckoutSimMail::class,
         ];
         $mailable = $lookup[get_class($event->checkoutable)];
 
@@ -472,6 +489,7 @@ class CheckoutableListener
             Asset::class => CheckinAssetMail::class,
             LicenseSeat::class => CheckinLicenseMail::class,
             Component::class => CheckinComponentMail::class,
+            Sim::class => CheckinSimMail::class,
         ];
         $mailable = $lookup[get_class($event->checkoutable)];
 
@@ -506,13 +524,15 @@ class CheckoutableListener
         }
     }
 
-    private function webhookSelected()
+    private function webhookSelected(Model $checkoutable): string
     {
-        if (Setting::getSettings()->webhook_selected === 'slack' || Setting::getSettings()->webhook_selected === 'general') {
+        $selected = $this->webhookSource($checkoutable)->webhook_selected;
+
+        if ($selected === 'slack' || $selected === 'general') {
             return 'slack';
         }
 
-        return Setting::getSettings()->webhook_selected;
+        return $selected;
     }
 
     private function shouldNotSendAnyNotifications($checkoutable): bool
@@ -520,9 +540,9 @@ class CheckoutableListener
         return in_array(get_class($checkoutable), $this->skipNotificationsFor);
     }
 
-    private function shouldSendWebhookNotification(): bool
+    private function shouldSendWebhookNotification(Model $checkoutable): bool
     {
-        return Setting::getSettings() && Setting::getSettings()->webhook_endpoint;
+        return (bool) $this->webhookSource($checkoutable)->webhook_endpoint;
     }
 
     private function checkoutableCategoryShouldSendEmail(Model $checkoutable): bool
@@ -534,9 +554,11 @@ class CheckoutableListener
         return method_exists($checkoutable, 'checkin_email') && $checkoutable->checkin_email();
     }
 
-    private function newMicrosoftTeamsWebhookEnabled(): bool
+    private function newMicrosoftTeamsWebhookEnabled(Model $checkoutable): bool
     {
-        return Setting::getSettings()->webhook_selected === 'microsoft' && Str::contains(Setting::getSettings()->webhook_endpoint, 'workflows');
+        $source = $this->webhookSource($checkoutable);
+
+        return $source->webhook_selected === 'microsoft' && Str::contains($source->webhook_endpoint, 'workflows');
     }
 
     private function shouldSendCheckoutEmailToUser(Model $checkoutable): bool
@@ -641,7 +663,26 @@ class CheckoutableListener
             $checkoutable instanceof Consumable,
             $checkoutable instanceof Component => $checkoutable->category,
             $checkoutable instanceof LicenseSeat => $checkoutable->license->category,
+            // Items without a category (e.g. SIM cards).
             default => null,
         };
+    }
+
+    private function webhookSource(Model $checkoutable): Company|Setting
+    {
+        $companyId = match (true) {
+            $checkoutable instanceof LicenseSeat => $checkoutable->license->company_id,
+            default => $checkoutable->getAttribute('company_id'),
+        };
+
+        if ($companyId) {
+            $company = Company::find($companyId);
+
+            if ($company?->webhook_endpoint) {
+                return $company;
+            }
+        }
+
+        return Setting::getSettings();
     }
 }

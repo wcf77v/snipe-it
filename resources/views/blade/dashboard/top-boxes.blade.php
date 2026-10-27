@@ -3,7 +3,15 @@
 {{-- Admin-only inventory summary row. Trying to determine the box sizes
 for an unpredictable number of boxes (logged in user can only see accessories,
 nothing else, etc makes for a really awkward display view --}}
-<div class="row">
+@isset($counts['sim'])
+    {{-- Seven boxes with SIM cards: keep them on one row on large screens. --}}
+    <style nonce="{{ csrf_token() }}">
+        @media (min-width: 1200px) {
+            .dashboard-top-boxes > .col-lg-2 { width: 14.2857%; }
+        }
+    </style>
+@endisset
+<div class="row dashboard-top-boxes">
 
     <div class="col-lg-2 col-xs-6">
         <a href="{{ route('hardware.index') }}">
@@ -94,6 +102,26 @@ nothing else, etc makes for a really awkward display view --}}
             </div>
         </a>
     </div>
+
+    @isset($counts['sim'])
+    <div class="col-lg-2 col-xs-6">
+        <a href="{{ route('sims.index') }}">
+            <div class="dashboard small-box bg-olive">
+                <div class="inner">
+                    <h3>{{ number_format($counts['sim']) }}</h3>
+                    <p>{{ trans('admin/sims/general.sims') }}</p>
+                </div>
+                <div class="icon" aria-hidden="true">
+                    <x-icon type="sims"/>
+                </div>
+                <span class="small-box-footer">
+                    {{ trans('general.view_all') }}
+                    <x-icon type="arrow-circle-right"/>
+                </span>
+            </div>
+        </a>
+    </div>
+    @endisset
 
     <div class="col-lg-2 col-xs-6">
         <a href="{{ route('users.index') }}">

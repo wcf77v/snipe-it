@@ -20,14 +20,11 @@ class CurrentInventory extends Notification implements ShouldQueue
      */
     public function __construct(
         public User $user
-    )
-    {
-    }
+    ) {}
 
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
      * @return array
      */
     public function via()
@@ -48,6 +45,7 @@ class CurrentInventory extends Notification implements ShouldQueue
                 'accessories' => $this->user->accessories,
                 'licenses' => $this->user->licenses,
                 'consumables' => $this->user->consumables,
+                'sims' => $this->user->assignedSims,
             ])
             ->subject(trans('mail.inventory_report'))
             ->withSymfonyMessage(function (Email $message) {

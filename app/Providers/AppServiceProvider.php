@@ -12,6 +12,7 @@ use App\Models\License;
 use App\Models\Location;
 use App\Models\Maintenance;
 use App\Models\Setting;
+use App\Models\Sim;
 use App\Models\SnipeSCIMConfig;
 use App\Models\User;
 use App\Observers\AccessoryObserver;
@@ -23,6 +24,8 @@ use App\Observers\LicenseObserver;
 use App\Observers\LocationObserver;
 use App\Observers\MaintenanceObserver;
 use App\Observers\SettingObserver;
+use App\Observers\SimObserver;
+use App\Observers\SimUserPhoneObserver;
 use App\Observers\UserObserver;
 use App\View\Composers\ImpersonationBannerComposer;
 use App\View\Composers\SidebarComposer;
@@ -92,6 +95,8 @@ class AppServiceProvider extends ServiceProvider
         Location::observe(LocationObserver::class);
         Maintenance::observe(MaintenanceObserver::class);
         Setting::observe(SettingObserver::class);
+        Sim::observe(SimObserver::class);
+        User::observe(SimUserPhoneObserver::class);
         User::observe(UserObserver::class);
 
         // Defense against sync-adapter base URLs pointing at the vendor's

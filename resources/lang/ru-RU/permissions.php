@@ -234,6 +234,42 @@ return [
         'name' => 'Check In Components',
         'note' => 'Check components back into inventory that are currently checked out.',
     ],
+    'sims' => [
+        'name' => 'SIM-карты',
+        'note' => 'Доступ к разделу SIM-карт.',
+    ],
+    'simsview' => [
+        'name' => 'Просмотр SIM-карт',
+        'note' => 'Просмотр списка и карточек SIM-карт.',
+    ],
+    'simscreate' => [
+        'name' => 'Создание SIM-карт',
+        'note' => 'Создание новых SIM-карт.',
+    ],
+    'simsedit' => [
+        'name' => 'Редактирование SIM-карт',
+        'note' => 'Изменение существующих SIM-карт и тарифов.',
+    ],
+    'simsdelete' => [
+        'name' => 'Удаление SIM-карт',
+        'note' => 'Удаление SIM-карт из системы.',
+    ],
+    'simscheckout' => [
+        'name' => 'Выдача SIM-карт',
+        'note' => 'Выдача SIM-карт пользователям, в активы (устройства) или на расположения.',
+    ],
+    'simscheckin' => [
+        'name' => 'Возврат SIM-карт',
+        'note' => 'Возврат выданных SIM-карт на склад.',
+    ],
+    'simssecrets' => [
+        'name' => 'Просмотр секретов SIM',
+        'note' => 'Просмотр PIN/PUK, кодов активации eSIM и зашифрованных пользовательских полей SIM-карт.',
+    ],
+    'simsfiles' => [
+        'name' => 'Файлы SIM-карт',
+        'note' => 'Загрузка, скачивание и удаление файлов, прикреплённых к SIM-картам.',
+    ],
     'kits' => [
         'name' => 'Готовые наборы',
         'note' => 'Grants access to the Predefined Kits section of the application.',

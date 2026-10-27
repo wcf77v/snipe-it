@@ -32,6 +32,7 @@
                     <x-tabs.license-tab count="{{ $user->licenses()->count() }}"/>
                     <x-tabs.accessory-tab count="{{ $user->accessories()->count() }}"/>
                     <x-tabs.consumable-tab count="{{ $user->consumables()->count() }}"/>
+                    <x-tabs.sim-tab count="{{ $user->assignedSims()->count() }}"/>
                     <x-tabs.maintenance-tab count="{{ $user->assignedMaintenances()->count() }}"/>
                     <x-tabs.files-tab :item="$user" count="{{ $user->uploads()->count() }}"/>
                     <x-tabs.eula-tab count="{{ $user->eulas()->count() }}"/>
@@ -106,7 +107,7 @@
                             <x-page-data>
 
                                 <x-data-row :label="trans('general.name')" copy_what="name">
-                                    {{ $user->first_name }} {{ $user->last_name }}
+                                    {{ $user->full_name }}
                                 </x-data-row>
 
                                 <x-data-row :label="trans('admin/users/table.display_name')" copy_what="display_name">
@@ -115,9 +116,9 @@
 
                                 <x-data-row :label="trans('general.username')" copy_what="username">
                                     @if ($user->isSuperUser())
-                                        <span class="label label-danger" data-tooltip="true" title="{{ trans('general.superuser_tooltip') }}"><x-icon type="superadmin" style="padding-right: 5px;"/>{{ $user->username }}</span>
+                                        <span class="label label-danger label-normal" data-tooltip="true" title="{{ trans('general.superuser_tooltip') }}"><x-icon type="superadmin" style="padding-right: 5px;"/>{{ $user->username }}</span>
                                     @elseif ($user->hasAccess('admin'))
-                                        <span class="label label-warning" data-tooltip="true" title="{{ trans('general.admin_tooltip') }}"><x-icon type="superadmin" style="padding-right: 5px;"/>{{ $user->username }}</span>
+                                        <span class="label label-warning label-normal" data-tooltip="true" title="{{ trans('general.admin_tooltip') }}"><x-icon type="superadmin" style="padding-right: 5px;"/>{{ $user->username }}</span>
                                     @else
                                         {{ $user->username }}
                                     @endif
@@ -134,11 +135,7 @@
                                 <x-data-row :label="trans('general.groups')" copy_what="groups">
                                     @if ($user->groups->count() > 0)
                                         @foreach ($user->groups as $group)
-                                            @can('superadmin')
-                                                <a href="{{ route('groups.show', $group->id) }}" class="label label-default">{{ $group->name }}</a>
-                                            @else
-                                                <span class="label label-default">{{ $group->name }}</span>
-                                            @endcan
+                                            {!! $group->present()->formattedNameLink() !!}
                                         @endforeach
                                     @endif
 
@@ -149,11 +146,11 @@
 
                                 <x-data-row :label="trans('general.permissions')">
                                     @if ($user->isSuperUser())
-                                        <span class="label label-danger" data-tooltip="true" title="{{ trans('general.superuser_tooltip') }}">
+                                        <span class="label label-danger label-normal" data-tooltip="true" title="{{ trans('general.superuser_tooltip') }}">
                                             <x-icon type="superadmin" style="padding-right: 5px;"/>{{ trans('general.superuser') }}
                                         </span>
                                     @elseif ($user->hasAccess('admin'))
-                                        <span class="label label-warning" data-tooltip="true" title="{{ trans('general.admin_tooltip') }}">
+                                        <span class="label label-warning label-normal" data-tooltip="true" title="{{ trans('general.admin_tooltip') }}">
                                             <x-icon type="superadmin" style="padding-right: 5px;"/>{{ trans('general.admin_user') }}
                                         </span>
                                     @elseif (!empty($effectivePermissionsBySection))
@@ -333,7 +330,7 @@
                         <x-slot:bulkactions>
                             <x-table.bulk-actions
                                 name="userLicenseTable"
-                                :action_route="route('licenses.bulkcheckin.selected')"
+                                :action_route="route('licenses.bulkcheckin.show')"
                                 model_name="license_seats"
                                 :actions="[
                                     'checkin' => ['label' => trans('general.checkin')],
@@ -357,7 +354,7 @@
                     </x-tabs.pane>
 
                     <x-tabs.pane name="assets" :count="$user->assets()->AssetsForShow()->count()">
-                        <x-table.assets :route="route('api.assets.index',['assigned_to' => e($user->id), 'assigned_type' => 'App\Models\User'])"/>
+                        <x-table.assets name="userAssets" :route="route('api.assets.index',['assigned_to' => e($user->id), 'assigned_type' => 'App\Models\User'])"/>
                     </x-tabs.pane>
 
                     <x-tabs.pane name="accessories" :count="$user->accessories()->count()">
@@ -394,12 +391,19 @@
 
                     </x-tabs.pane>
 
+                    @can('view', \App\Models\Sim::class)
+                    <x-tabs.pane name="sims">
+                        @include('sims/partials/user-phone-matches', ['user' => $user])
+                        <x-table.sims :route="route('api.sims.index', ['assigned_to' => $user->id, 'assigned_type' => 'user'])"/>
+                    </x-tabs.pane>
+                    @endcan
+
                     {{-- Maintenances tab: every maintenance whose underlying
                          asset was checked out to this user. Shows open and
                          closed; the tab badge only counts the open ones
                          (see assignedMaintenances()->active() above). --}}
                     <x-tabs.pane name="maintenances" :count="$user->assignedMaintenances()->count()">
-                        <x-table.maintenances
+                        <x-table.maintenances name="userMaintenances"
                             :route="route('api.maintenances.index', ['checked_out_to_id' => $user->id, 'checked_out_to_type' => \App\Models\User::class])"
                             export_filename="export-maintenances-{{ str_slug($user->username) }}-{{ date('Y-m-d') }}"
                         />
@@ -485,7 +489,7 @@
 
                     <!-- start history tab pane -->
                     <x-tabs.pane name="history">
-                        <x-table.history :model="$user" :route="route('api.users.history', $user)" :hide_fields="['order_number']"/>
+                        <x-table.history name="userHistory" :model="$user" :route="route('api.users.history', $user)" :hide_fields="['order_number']"/>
                     </x-tabs.pane>
                     <!-- end history tab pane -->
                 </x-slot:tabpanes>

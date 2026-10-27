@@ -6,11 +6,13 @@ use App\Models\Asset;
 use App\Models\AssetModel;
 use App\Models\Company;
 use App\Models\CustomField;
+use App\Models\CustomFieldset;
 use App\Models\Location;
 use App\Models\Statuslabel;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\Fluent\AssertableJson;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -771,6 +773,70 @@ class StoreAssetTest extends TestCase
             ->assertMessagesContains('serial');
     }
 
+    public function test_asset_store_does_not_lazy_load_custom_field_default_values_per_field()
+    {
+        // Regression test for the N+1 on `CustomField::defaultValue($modelId)`.
+        // The store() controller used to call `AssetModel::find($model_id)`
+        // without eager loading, then iterate `$model->fieldset->fields` and
+        // call `$field->defaultValue($model_id)` inside the loop. Each call
+        // lazy-loaded `$this->defaultValues` which is
+        // `belongsToMany(AssetModel::class, 'models_custom_fields')`, firing
+        // one `SELECT models.*  INNER JOIN models_custom_fields` per field.
+        // The fix eager-loads `fieldset.fields.defaultValues` on the model
+        // fetch, so that pivot walk fires once up front.
+        $this->markIncompleteIfMySQL('Custom Fields tests do not work on MySQL');
+
+        $status = Statuslabel::factory()->readyToDeploy()->create();
+        $superuser = User::factory()->superuser()->create();
+
+        $fieldA = CustomField::factory()->macAddress()->create();
+        $fieldB = CustomField::factory()->ram()->create();
+        $fieldC = CustomField::factory()->cpu()->create();
+
+        $fieldset = CustomFieldset::factory()->create();
+        $fieldset->fields()->attach([
+            $fieldA->id => ['order' => 1, 'required' => false],
+            $fieldB->id => ['order' => 2, 'required' => false],
+            $fieldC->id => ['order' => 3, 'required' => false],
+        ]);
+
+        $model = AssetModel::factory()->create(['fieldset_id' => $fieldset->id]);
+        $model->defaultValues()->attach([
+            $fieldA->id => ['default_value' => 'aa:bb:cc:dd:ee:ff'],
+            $fieldB->id => ['default_value' => 'default-ram'],
+            $fieldC->id => ['default_value' => 'default-cpu'],
+        ]);
+
+        DB::enableQueryLog();
+
+        $this->actingAsForApi($superuser)
+            ->postJson(route('api.assets.store'), [
+                'model_id' => $model->id,
+                'status_id' => $status->id,
+                'asset_tag' => 'n-plus-one-probe',
+            ])
+            ->assertStatusMessageIs('success');
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        // Count queries that walk the models_custom_fields pivot from the
+        // CustomField::defaultValue() side. Pre-fix fired once per custom
+        // field (three times here). Post-fix fires once, from the eager
+        // load on the AssetModel::with(...) call. Threshold is one, more
+        // than that means the lazy-load pattern crept back in.
+        $pivotWalks = collect($queries)
+            ->filter(fn ($q) => str_contains($q['query'], '`models`')
+                && str_contains($q['query'], 'inner join `models_custom_fields`'))
+            ->count();
+
+        $this->assertLessThanOrEqual(
+            1,
+            $pivotWalks,
+            'Asset store fired '.$pivotWalks.' models <-> models_custom_fields pivot queries. Expected at most 1 (the eager load upfront).'
+        );
+    }
+
     public function test_encrypted_custom_field_can_be_stored()
     {
         $this->markIncompleteIfMySQL('Custom Fields tests do not work on MySQL');
@@ -901,5 +967,38 @@ class StoreAssetTest extends TestCase
         $image_data = Storage::disk('public')->get(app('assets_upload_path').e($asset->image));
         // $this->assertEquals('3d67fb99a0b6926e350f7b71397525d7a6b936c1', sha1($image_data)); //this doesn't work because the image gets resized - use the resized hash instead
         $this->assertEquals('db2e13ba04318c99058ca429d67777322f48566b', sha1($image_data));
+    }
+
+    public function test_api_rejects_asset_create_without_serial_when_model_requires_serial(): void
+    {
+        $model = AssetModel::factory()->create(['require_serial' => 1]);
+        $status = Statuslabel::factory()->create();
+
+        $this->actingAsForApi(User::factory()->superuser()->create())
+            ->postJson(route('api.assets.store'), [
+                'model_id' => $model->id,
+                'status_id' => $status->id,
+                'asset_tag' => 'NEEDS-SERIAL-1',
+                // 'serial' intentionally omitted
+            ])
+            ->assertStatusMessageIs('error');
+
+        $this->assertDatabaseMissing('assets', ['asset_tag' => 'NEEDS-SERIAL-1']);
+    }
+
+    public function test_api_accepts_asset_create_without_serial_when_model_does_not_require_serial(): void
+    {
+        $model = AssetModel::factory()->create(['require_serial' => 0]);
+        $status = Statuslabel::factory()->create();
+
+        $this->actingAsForApi(User::factory()->superuser()->create())
+            ->postJson(route('api.assets.store'), [
+                'model_id' => $model->id,
+                'status_id' => $status->id,
+                'asset_tag' => 'OPTIONAL-SERIAL-1',
+            ])
+            ->assertStatusMessageIs('success');
+
+        $this->assertDatabaseHas('assets', ['asset_tag' => 'OPTIONAL-SERIAL-1']);
     }
 }

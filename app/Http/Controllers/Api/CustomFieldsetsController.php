@@ -31,8 +31,6 @@ class CustomFieldsetsController extends Controller
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @author [Josh Gibson]
      *
-     * @param  int  $id
-     *
      * @since [v1.8]
      */
     public function index(): array
@@ -172,7 +170,12 @@ class CustomFieldsetsController extends Controller
     {
         $this->authorize('view', CustomField::class);
         $set = CustomFieldset::findOrFail($fieldsetId);
-        $fields = $set->fields;
+
+        // Constrain the eager load to only the one models_custom_fields pivot
+        // row that matches this specific model
+        $fields = $set->fields()
+            ->with(['defaultValues' => fn($q) => $q->wherePivot('asset_model_id', $modelId)])
+            ->get();
 
         return (new CustomFieldsTransformer)->transformCustomFieldsWithDefaultValues($fields, $modelId, $fields->count());
     }

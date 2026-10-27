@@ -41,7 +41,7 @@ return [
 
     'assetsview' => [
         'name' => 'Peržiūrėti turtą',
-        'note' => 'Note that users with this permission will also be able to see (not modify or delete) files uploaded to the asset model as well. This is to make it easier to share common documents like user manuals across assets without having to upload them to every asset, and to avoid having to grant the user permission to modify asset files. Users with this permission will also be able to view edit and checkin history.',
+        'note' => 'Atkreipkite dėmesį, kad naudotojai, turintys šią teisę, taip pat galės peržiūrėti (bet ne keisti ar ištrinti) į turto modelį įkeltus failus. Tai daroma siekiant palengvinti bendrų dokumentų, pvz., naudotojo vadovų, dalijimąsi tarp turto vienetų, nereikalaujant jų įkelti į kiekvieną turto vienetą, ir siekiant išvengti būtinybės suteikti naudotojui teisę redaguoti turto failus. Naudotojai, turintys šią teisę, taip pat galės peržiūrėti redagavimo ir išdavimo istoriją.',
     ],
 
     'assetscreate' => [
@@ -234,6 +234,42 @@ return [
         'name' => 'Paimti komponentus',
         'note' => 'Paimti šiuo metu išduotus komponentus ir grąžinti atgal į inventorių.',
     ],
+    'sims' => [
+        'name' => 'SIM Cards',
+        'note' => 'Grants access to the SIM Cards section of the application.',
+    ],
+    'simsview' => [
+        'name' => 'View SIM Cards',
+        'note' => 'View the SIM cards list and detail pages.',
+    ],
+    'simscreate' => [
+        'name' => 'Create New SIM Cards',
+        'note' => 'Create new SIM cards.',
+    ],
+    'simsedit' => [
+        'name' => 'Edit SIM Cards',
+        'note' => 'Edit existing SIM cards and plans.',
+    ],
+    'simsdelete' => [
+        'name' => 'Delete SIM Cards',
+        'note' => 'Delete SIM cards from the system.',
+    ],
+    'simscheckout' => [
+        'name' => 'Check Out SIM Cards',
+        'note' => 'Assign SIM cards to users, assets or locations.',
+    ],
+    'simscheckin' => [
+        'name' => 'Check In SIM Cards',
+        'note' => 'Check SIM cards back into inventory.',
+    ],
+    'simssecrets' => [
+        'name' => 'View SIM Secrets',
+        'note' => 'Allows the user to view PIN/PUK codes, eSIM activation codes and encrypted SIM custom fields.',
+    ],
+    'simsfiles' => [
+        'name' => 'Manage SIM Card Files',
+        'note' => 'Allows the user to upload, download, and delete files associated with SIM cards.',
+    ],
     'kits' => [
         'name' => 'Turto rinkiniai',
         'note' => 'Suteikia prieigą prie programos Turto rinkinių skilties.',
@@ -256,7 +292,7 @@ return [
     ],
     'usersview' => [
         'name' => 'Peržiūrėti naudotojus',
-        'note' => 'Note that users with this permission will also be able to see (not modify or delete) files uploaded to the user as well. Users with this permission will also be able to view edit and checkin history.',
+        'note' => 'Atkreipkite dėmesį, kad naudotojai, turintys šią teisę, taip pat galės peržiūrėti (bet nekeisti ar ištrinti) į naudotojo profilį įkeltus failus. Naudotojai, turintys šią teisę, taip pat galės peržiūrėti redagavimo ir išdavimo istoriją.',
     ],
     'userscreate' => [
         'name' => 'Sukurti naudotojus',

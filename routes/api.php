@@ -67,10 +67,23 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
     Route::get('requests', [Api\CheckoutRequest::class, 'index'])
         ->name('api.requests.index');
 
+    Route::get('unaccepted-acceptances', [Api\UnacceptedAcceptancesController::class, 'index'])
+        ->name('api.unaccepted-acceptances.index');
+
+    Route::post('unaccepted-acceptances/send-reminders', [Api\UnacceptedAcceptancesController::class, 'sendReminders'])
+        ->name('api.unaccepted-acceptances.send-reminders');
+
     /**
      * Account routes
      */
     Route::group(['prefix' => 'account'], function () {
+
+        Route::get('assets',
+            [
+                Api\ProfileController::class,
+                'assets',
+            ]
+        )->name('api.account.assets');
 
         Route::get('requests',
             [
@@ -203,6 +216,26 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             ]
         )->name('api.accessories.selectlist');
 
+        Route::post('{id}/restore',
+            [Api\AccessoriesController::class, 'restore']
+        )->where('id', '[0-9]+')->name('api.accessories.restore');
+
+        Route::post('{accessory}/unarchive',
+            [Api\AccessoriesController::class, 'unarchive']
+        )->where('accessory', '[0-9]+')->name('api.accessories.unarchive');
+
+        Route::post('bulkedit',
+            [Api\AccessoriesController::class, 'bulkEdit']
+        )->name('api.accessories.bulkedit');
+
+        Route::post('bulkdelete',
+            [Api\AccessoriesController::class, 'bulkDestroy']
+        )->name('api.accessories.bulkdelete');
+
+        Route::post('bulkrestore',
+            [Api\AccessoriesController::class, 'bulkRestore']
+        )->name('api.accessories.bulkrestore');
+
     }); // end accessories group
 
     Route::resource('accessories',
@@ -322,6 +355,26 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             ]
         )->name('api.components.assets');
 
+        Route::post('{id}/restore',
+            [Api\ComponentsController::class, 'restore']
+        )->where('id', '[0-9]+')->name('api.components.restore');
+
+        Route::post('{component}/unarchive',
+            [Api\ComponentsController::class, 'unarchive']
+        )->where('component', '[0-9]+')->name('api.components.unarchive');
+
+        Route::post('bulkedit',
+            [Api\ComponentsController::class, 'bulkEdit']
+        )->name('api.components.bulkedit');
+
+        Route::post('bulkdelete',
+            [Api\ComponentsController::class, 'bulkDestroy']
+        )->name('api.components.bulkdelete');
+
+        Route::post('bulkrestore',
+            [Api\ComponentsController::class, 'bulkRestore']
+        )->name('api.components.bulkrestore');
+
     });
     Route::post('components/{id}/checkin',
         [
@@ -357,6 +410,119 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             'parameters' => ['component' => 'component_id'],
         ]
     ); // end components API routes
+
+    /**
+     * SIM cards API routes
+     */
+    Route::group(['prefix' => 'sims'], function () {
+
+        Route::get('selectlist',
+            [
+                Api\SimsController::class,
+                'selectlist',
+            ]
+        )->name('api.sims.selectlist');
+
+        Route::get('iccid/{iccid}',
+            [
+                Api\SimsController::class,
+                'showByIccid',
+            ]
+        )->where('iccid', '[0-9A-Fa-f \-]{1,40}')
+            ->name('api.sims.show.byiccid');
+
+        Route::get('{sim}/history',
+            [
+                Api\SimsController::class,
+                'history',
+            ]
+        )->where('sim', '[0-9]+')
+            ->name('api.sims.history')
+            ->withTrashed();
+
+        Route::post('{sim}/checkout',
+            [
+                Api\SimsController::class,
+                'checkout',
+            ]
+        )->where('sim', '[0-9]+')
+            ->name('api.sims.checkout');
+
+        Route::post('{sim}/checkin',
+            [
+                Api\SimsController::class,
+                'checkin',
+            ]
+        )->where('sim', '[0-9]+')
+            ->name('api.sims.checkin');
+
+        Route::post('{simId}/restore',
+            [
+                Api\SimsController::class,
+                'restore',
+            ]
+        )->where('simId', '[0-9]+')
+            ->name('api.sims.restore');
+
+        Route::get('phone-matches',
+            [
+                Api\SimsController::class,
+                'pendingPhoneMatches',
+            ]
+        )->name('api.sims.phone-matches.index');
+
+        Route::get('phone-matches/user/{user}',
+            [
+                Api\SimsController::class,
+                'userPhoneMatches',
+            ]
+        )->where('user', '[0-9]+')
+            ->name('api.sims.phone-matches.user');
+
+        Route::get('{sim}/phone-matches',
+            [
+                Api\SimsController::class,
+                'phoneMatches',
+            ]
+        )->where('sim', '[0-9]+')
+            ->name('api.sims.phone-matches.sim');
+    });
+
+    /**
+     * SIM plans API routes
+     */
+    Route::get('simplans/selectlist',
+        [
+            Api\SimPlansController::class,
+            'selectlist',
+        ]
+    )->name('api.simplans.selectlist');
+
+    Route::resource('simplans',
+        Api\SimPlansController::class,
+        ['names' => [
+            'index' => 'api.simplans.index',
+            'show' => 'api.simplans.show',
+            'update' => 'api.simplans.update',
+            'store' => 'api.simplans.store',
+            'destroy' => 'api.simplans.destroy',
+        ],
+            'except' => ['create', 'edit'],
+        ]
+    )->where(['simplan' => '[0-9]+']); // end SIM plans API routes
+
+    Route::resource('sims',
+        Api\SimsController::class,
+        ['names' => [
+            'index' => 'api.sims.index',
+            'show' => 'api.sims.show',
+            'update' => 'api.sims.update',
+            'store' => 'api.sims.store',
+            'destroy' => 'api.sims.destroy',
+        ],
+            'except' => ['create', 'edit'],
+        ]
+    )->where(['sim' => '[0-9]+']); // end SIM cards API routes
 
     /**
      * Consumables API routes
@@ -397,6 +563,35 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
                 'adjustQuantity',
             ]
         )->name('api.consumables.adjust-quantity');
+
+        Route::post('{id}/restore',
+            [Api\ConsumablesController::class, 'restore']
+        )->where('id', '[0-9]+')->name('api.consumables.restore');
+
+        Route::post('{consumable}/unarchive',
+            [Api\ConsumablesController::class, 'unarchive']
+        )->where('consumable', '[0-9]+')->name('api.consumables.unarchive');
+
+        Route::post('{consumable}/consume/{assignment}',
+            [Api\ConsumablesController::class, 'consume']
+        )->where(['consumable' => '[0-9]+', 'assignment' => '[0-9]+'])
+            ->name('api.consumables.consume');
+
+        Route::post('bulkconsume',
+            [Api\ConsumablesController::class, 'bulkConsume']
+        )->name('api.consumables.bulkconsume');
+
+        Route::post('bulkedit',
+            [Api\ConsumablesController::class, 'bulkEdit']
+        )->name('api.consumables.bulkedit');
+
+        Route::post('bulkdelete',
+            [Api\ConsumablesController::class, 'bulkDestroy']
+        )->name('api.consumables.bulkdelete');
+
+        Route::post('bulkrestore',
+            [Api\ConsumablesController::class, 'bulkRestore']
+        )->name('api.consumables.bulkrestore');
 
     });
 
@@ -517,6 +712,17 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
     /**
      * Groups API routes
      */
+    Route::group(['prefix' => 'groups'], function () {
+
+        Route::get('selectlist',
+            [
+                Api\GroupsController::class,
+                'selectlist',
+            ]
+        )->name('api.groups.selectlist');
+
+    });
+
     Route::resource('groups',
         Api\GroupsController::class,
         ['names' => [
@@ -1541,7 +1747,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             'index',
         ]
     )->name('api.files.index')
-        ->where(['object_type' => 'accessories|audits|assets|components|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
+        ->where(['object_type' => 'accessories|audits|assets|components|sims|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
 
     // Get a file
     Route::get('{object_type}/{id}/files/{file_id}',
@@ -1550,7 +1756,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             'show',
         ]
     )->name('api.files.show')
-        ->where(['object_type' => 'accessories|audits|assets|components|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
+        ->where(['object_type' => 'accessories|audits|assets|components|sims|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
 
     // Upload files(s)
     Route::post('{object_type}/{id}/files',
@@ -1559,7 +1765,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             'store',
         ]
     )->name('api.files.store')
-        ->where(['object_type' => 'accessories|audits|assets|components|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
+        ->where(['object_type' => 'accessories|audits|assets|components|sims|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
 
     // Delete files(s)
     Route::delete('{object_type}/{id}/files/{file_id}/delete',
@@ -1568,6 +1774,6 @@ Route::group(['prefix' => 'v1', 'middleware' => ['api', 'api-throttle:api']], fu
             'destroy',
         ]
     )->name('api.files.destroy')
-        ->where(['object_type' => 'accessories|assets|components|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
+        ->where(['object_type' => 'accessories|assets|components|sims|consumables|hardware|licenses|locations|maintenances|models|suppliers|users|companies|departments']);
 
 }); // end API routes

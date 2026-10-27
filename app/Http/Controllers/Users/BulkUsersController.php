@@ -11,6 +11,7 @@ use App\Models\Actionlog;
 use App\Models\Asset;
 use App\Models\CheckoutAcceptance;
 use App\Models\Company;
+use App\Models\CompanyableScope;
 use App\Models\Component;
 use App\Models\Consumable;
 use App\Models\ConsumableAssignment;
@@ -18,6 +19,7 @@ use App\Models\Group;
 use App\Models\License;
 use App\Models\LicenseSeat;
 use App\Models\Setting;
+use App\Models\Sim;
 use App\Models\User;
 use App\Notifications\CurrentInventory;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -460,9 +462,20 @@ class BulkUsersController extends Controller
         // computed above.
         $scopedAccessoryUserRows = $accessoryUserRows->whereIn('accessory_id', $accessoryModels->pluck('id'));
         $scopedLicenseSeats = $licenses->whereIn('license_id', $licenseModels->pluck('id'));
+        // SIM cards checked out to these users are checked in too (with history).
+        $sims = Sim::where('assigned_type', User::class)->whereIn('assigned_to', $user_raw_array)->get();
+        foreach ($sims as $sim) {
+            if (auth()->user()->cannot('checkin', $sim)) {
+                return redirect()->route('users.index')->with('error', trans('general.insufficient_permissions'));
+            }
+        }
 
         if ($request->input('delete_user') == '1' && $users->isNotEmpty() && auth()->user()->cannot('delete', User::class)) {
             return redirect()->route('users.index')->with('error', trans('general.insufficient_permissions'));
+        }
+
+        foreach ($sims as $sim) {
+            $sim->checkIn(trans('general.bulk_checkin_success'));
         }
 
         $this->logItemCheckinAndDelete($assets, Asset::class);
@@ -627,6 +640,12 @@ class BulkUsersController extends Controller
                 $user_to_merge->accessories()->updateExistingPivot($accessory->id, ['assigned_to' => $merge_into_user->id]);
             }
 
+            // SIM cards follow the user, like assets do.
+            Sim::withoutGlobalScope(CompanyableScope::class)
+                ->where('assigned_type', User::class)
+                ->where('assigned_to', $user_to_merge->id)
+                ->update(['assigned_to' => $merge_into_user->id]);
+
             foreach ($user_to_merge->userlog as $log) {
                 $log->target_id = $merge_into_user->id;
                 $log->save();
@@ -651,10 +670,13 @@ class BulkUsersController extends Controller
 
             // Carry over company pivot memberships from the merged
             // user into the target.
-            $mergedCompanyIds = DB::table('company_user')
-                ->where('user_id', $user_to_merge->id)
-                ->pluck('company_id')
-                ->all();
+            $mergedCompanyIds = Company::getIdsForCurrentUser(
+                DB::table('company_user')
+                    ->where('user_id', $user_to_merge->id)
+                    ->pluck('company_id')
+                    ->map(fn($id) => (int) $id)
+                    ->all()
+            );
             if (! empty($mergedCompanyIds)) {
                 $now = now();
                 DB::table('company_user')->insertOrIgnore(
